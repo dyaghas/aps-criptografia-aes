@@ -52,7 +52,6 @@ s_box_map = {
 
 }
 
-
 def convert_to_hex(var):
     var = format(ord(var), "02x")
     return var
@@ -67,10 +66,8 @@ def transpose(matrix_a, matrix_res):
 def to_hex_array(input_string):
     block_array = [["", "", "", ""], ["", "", "", ""], ["", "", "", ""], ["", "", "", ""]]
     text_array = []
-
     x = 0
     y = 0
-
     for i in range(0, len(input_string)):
         if x < 4:
             block_array[y][x] = convert_to_hex(input_string[i])
@@ -92,21 +89,19 @@ def to_hex_array(input_string):
             y = 0
             block_array = [["", "", "", ""], ["", "", "", ""], ["", "", "", ""], ["", "", "", ""]]
             continue
-
     print(f"hex: {text_array}")
     return text_array
 
 
 def add_round_key(array, key):
     main_array = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
-
     for i in range(0, 4):
         for j in range(0, 4):
             # Adiciona a round key através de um XOR com o input
             main_array[i][j] = int(array[0][i][j], 16) ^ int(key[0][i][j], 16)
             main_array[i][j] = chr(main_array[i][j])
             main_array[i][j] = format(ord(str(main_array[i][j])), "x")
-    print(f"hex: {main_array}")
+    print(f"round-key: {main_array}")
     return main_array
 
 
@@ -118,8 +113,9 @@ def sub_byte(array, s_box):
             if array[i][j] == '0':
                 array[i][j] = int(array[i][j], 16)
                 array[i][j] = format(array[i][j], "02x")
-            index[i][j] = array[i][j]
-            print(s_box[index[i][j]])
+            # passa a array pela s-box
+            array[i][j] = s_box[array[i][j]]
+    print(f"sub-byte: {array}")
 
 
 user_input = to_hex_array(user_input)
