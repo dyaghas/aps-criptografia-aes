@@ -1,3 +1,5 @@
+import numpy as np
+
 user_input = "Two One Nine Two"
 encryption_key = "Thats my Kung Fu"
 
@@ -18,7 +20,7 @@ s_box_map = {
     '49': '3b', '4a': 'd6', '4b': 'b3', '4c': '29', '4d': 'e3', '4e': '2f', '4f': '84',  # linha 4
 
     '50': '53', '51': 'd1', '52': '00', '53': 'ed', '54': '20', '55': 'fc', '56': 'b1', '57': '5b', '58': '6a',
-    '59': '4c', '5a': 'be', '5b': '39', '5c': '4a', '5d': '4c', '5e': '58', '5f': 'cf',  # linha 5
+    '59': 'cb', '5a': 'be', '5b': '39', '5c': '4a', '5d': '4c', '5e': '58', '5f': 'cf',  # linha 5
 
     '60': 'd0', '61': 'ef', '62': 'aa', '63': 'fb', '64': '43', '65': '4d', '66': '33', '67': '85', '68': '45',
     '69': 'f9', '6a': '02', '6b': '7f', '6c': '50', '6d': '3c', '6e': '9f', '6f': 'a8',  # linha 6
@@ -51,6 +53,7 @@ s_box_map = {
     'f9': '99', 'fa': '2d', 'fb': '0f', 'fc': 'b0', 'fd': '54', 'fe': 'bb', 'ff': '16',  # linha f
 
 }
+
 
 def convert_to_hex(var):
     var = format(ord(var), "02x")
@@ -118,6 +121,13 @@ def sub_byte(array, s_box):
     print(f"sub-byte: {array}")
 
 
+def shift_rows(array):
+    offset = 0
+    for i in range(1, 4):
+        offset += 1
+        array[i] = np.roll(array[i], -offset)
+
+
 user_input = to_hex_array(user_input)
 
 encryption_key = to_hex_array(encryption_key)
@@ -125,3 +135,6 @@ encryption_key = to_hex_array(encryption_key)
 main_array = add_round_key(user_input, encryption_key)
 
 sub_byte(main_array, s_box_map)
+
+shift_rows(main_array)
+
