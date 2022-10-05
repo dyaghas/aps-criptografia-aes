@@ -97,15 +97,15 @@ def to_hex_array(input_string):
 
 
 def add_round_key(array, key):
-    main_array = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+    new_array = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
     for i in range(0, 4):
         for j in range(0, 4):
             # Adiciona a round key através de um XOR com o input
-            main_array[i][j] = int(array[0][i][j], 16) ^ int(key[0][i][j], 16)
-            main_array[i][j] = chr(main_array[i][j])
-            main_array[i][j] = format(ord(str(main_array[i][j])), "x")
-    print(f"round-key: {main_array}")
-    return main_array
+            new_array[i][j] = int(array[0][i][j], 16) ^ int(key[0][i][j], 16)
+            new_array[i][j] = chr(new_array[i][j])
+            new_array[i][j] = format(ord(str(new_array[i][j])), "x")
+    print(f"round-key: {new_array}")
+    return new_array
 
 
 def sub_byte(array, s_box):
@@ -126,15 +126,30 @@ def shift_rows(array):
     for i in range(1, 4):
         offset += 1
         array[i] = np.roll(array[i], -offset)
+    print(f"shift rows: {array}")
 
 
+def shift_rows_inv(array):
+    offset = 0
+    for i in range(1, 4):
+        offset += 1
+        array[i] = np.roll(array[i], offset)
+    print(array)
+
+
+# Transforma a mensagem em Hex
 user_input = to_hex_array(user_input)
 
+# Transforma a chave de criptografia em Hex
 encryption_key = to_hex_array(encryption_key)
 
+# Realiza um XOR entre a chave de criptografia e a menssagem
 main_array = add_round_key(user_input, encryption_key)
 
+# Passa a array por uma S-box
 sub_byte(main_array, s_box_map)
 
+# Transporta as linhas da array
 shift_rows(main_array)
+
 
