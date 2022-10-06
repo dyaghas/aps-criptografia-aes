@@ -1,5 +1,7 @@
 import numpy as np
 
+# Funções
+
 
 def convert_to_hex(var):
     var = format(ord(var), "02x")
@@ -55,7 +57,6 @@ def add_round_key(array, key):
 
 
 def sub_byte(array, s_box):
-    index = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
     for i in range(0, 4):
         for j in range(0, 4):
             # transforma '0' em '00' para possibilitar o sub-byte na s-box
@@ -83,18 +84,25 @@ def shift_rows_inv(array):
     print(array)
 
 
+def encrypt(message, key, s_box):
+    # Transforma a mensagem e a chave em hexadecimal de acordo com a tabela ASCII
+    message = to_hex_array(message)
+    key = to_hex_array(key)
+
+    # Faz um XOR  entre a mensagem e a chave
+    new_array = add_round_key(message, key)
+
+    # Passa o resultado do passo anterior por uma S_box
+    sub_byte(new_array, s_box)
+
+    # Desloca as linhas do array com os passos 0, 1, 2 e 3 para cada linha, respectivamente
+    shift_rows(new_array)
+
+# Execução
+
+
 user_input = "Two One Nine Two"
 encryption_key = "Thats my Kung Fu"
-
-# Transforma a mensagem em Hex
-user_input = to_hex_array(user_input)
-
-# Transforma a chave de criptografia em Hex
-encryption_key = to_hex_array(encryption_key)
-
-# Realiza um XOR entre a chave de criptografia e a menssagem
-main_array = add_round_key(user_input, encryption_key)
-
 s_box_map = {
     '00': '63', '01': '7c', '02': '77', '03': '7b', '04': 'f2', '05': '6b', '06': '6f', '07': 'c5', '08': '30',
     '09': '01', '0a': '67', '0b': '2b', '0c': 'fe', '0d': 'd7', '0e': 'ab', '0f': '76',  # linha 0
@@ -145,11 +153,5 @@ s_box_map = {
     'f9': '99', 'fa': '2d', 'fb': '0f', 'fc': 'b0', 'fd': '54', 'fe': 'bb', 'ff': '16',  # linha f
 
 }
-
-# Passa a array resultante do passo anterior por uma S-box
-sub_byte(main_array, s_box_map)
-
-# Transporta as linhas da array para a esquerda com os passos 0, 1, 2 e 3 respectivamente
-shift_rows(main_array)
-
-
+# Criptografia
+encrypt(user_input, encryption_key, s_box_map)
