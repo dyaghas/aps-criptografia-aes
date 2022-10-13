@@ -1,5 +1,6 @@
 import numpy as np
 
+
 # Funções
 
 
@@ -92,12 +93,53 @@ def shift_rows_inv(array):
 
 
 def mix_columns(array):
+    mult_matrix = [['02', '03', '01', '01'], ['01', '02', '03', '01'], ['01', '01', '02', '03'],
+                   ['03', '01', '01', '02']]
+    mix_state = [[0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00]]
     # For aninhado q passa por colunas ao invés de linhas
     for i in range(0, 4):
         for j in range(0, 4):
-            print(array[j][i])
-            array[j][i] = "{0:08b}".format(int(array[j][i], 16))
-            print(array[j][i])
+            print(f"array[j][i]: {array[j][i]}")
+            print(f"arrays: {array[0][i]} {array[1][i]} {array[2][i]} {array[3][i]}")
+            print(mult_matrix[j])
+
+            a = int(l_table[array[0][i]], 16) + int(l_table[mult_matrix[j][0]], 16)
+            a = verify_table_compatibility(a)
+            a = int(e_table[f"{a:x}"], 16)
+
+            b = int(l_table[array[1][i]], 16) + int(l_table[mult_matrix[j][1]], 16)
+            b = verify_table_compatibility(b)
+            b = int(e_table[f"{b:x}"], 16)
+
+            c = int(l_table[array[2][i]], 16) + int(l_table[mult_matrix[j][2]], 16)
+            c = verify_table_compatibility(c)
+            c = int(e_table[f"{c:x}"], 16)
+
+            d = int(l_table[array[3][i]], 16) + int(l_table[mult_matrix[j][3]], 16)
+            d = verify_table_compatibility(d)
+            d = int(e_table[f"{d:x}"], 16)
+
+            print(f"{a:x}")
+            print(f"{b:x}")
+            print(f"{c:x}")
+            print(f"{d:x}")
+
+            mix_state[j][i] = a ^ b ^ c ^ d
+
+            print(f"mix_state: {mix_state}")
+
+    print(int(e_table[f"{int(l_table['d4'], 16) + int(l_table['02'], 16):x}"], 16) ^
+                int(e_table[f"{int(l_table['bf'], 16) + int(l_table['03'], 16):x}"], 16) ^
+                int(e_table[f"{int(l_table['5d'], 16) + int(l_table['01'], 16):x}"], 16) ^
+                int(e_table[f"{int(l_table['30'], 16) + int(l_table['01'], 16):x}"], 16))
+
+
+def verify_table_compatibility(var):
+    # caso o número hexadecimal seja maior do que FF, deve-se subtrair FF de seu valor para que ele possa ser usado na
+    # e_table e l_table.
+    if len(f"{var:x}") > 2:
+        var = var - 0xff
+    return var
 
 
 def encrypt(message, key, s_box):
@@ -115,6 +157,7 @@ def encrypt(message, key, s_box):
     shift_rows(new_array)
 
     mix_columns(new_array)
+
 
 # Execução
 
@@ -228,16 +271,6 @@ e_table = {
 
     '10': '5f', '11': 'e1', '12': '38', '13': '48', '14': 'd8', '15': '73', '16': '95', '17': 'a4', '18': 'f7',
     '19': '02', '1a': '06', '1b': '0a', '1c': '1e', '1d': '22', '1e': '66', '1f': 'aa',  # linha 1
-}
-# Criptografia
-encrypt(user_input, encryption_key, s_box_map)
-
-e_table = {
-    '00': '01', '01': '03', '02': '05', '03': '0f', '04': '11', '05': '33', '06': '55', '07': 'ff', '08': '1a',
-    '09': '2e', '0a': '72', '0b': '96', '0c': 'a1', '0d': 'f8', '0e': '13', '0f': '35',  # linha 0
-
-    '10': '5f', '11': 'e1', '12': '38', '13': '48', '14': 'd8', '15': '73', '16': '95', '17': 'a4', '18': 'f7',
-    '19': '02', '1a': '06', '1b': '0a', '1c': '1e', '1d': '22', '1e': '66', '1f': 'aa',  # linha 1
 
     '20': 'e5', '21': '34', '22': '5c', '23': 'e4', '24': '37', '25': '59', '26': 'eb', '27': '26', '28': '6a',
     '29': 'be', '2a': 'd9', '2b': '70', '2c': '90', '2d': 'ab', '2e': 'e6', '2f': '31',  # linha 2
@@ -333,3 +366,6 @@ l_table = {
     'f9': '63', 'fa': '8c', 'fb': '80', 'fc': 'c0', 'fd': 'f7', 'fe': '70', 'ff': '07',  # linha f
 
 }
+
+# Criptografia
+encrypt(user_input, encryption_key, s_box_map)
