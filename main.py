@@ -99,39 +99,21 @@ def mix_columns(array):
     # For aninhado q passa por colunas ao invés de linhas
     for i in range(0, 4):
         for j in range(0, 4):
-            print(f"array[j][i]: {array[j][i]}")
-            print(f"arrays: {array[0][i]} {array[1][i]} {array[2][i]} {array[3][i]}")
-            print(mult_matrix[j])
-
             a = int(l_table[array[0][i]], 16) + int(l_table[mult_matrix[j][0]], 16)
             a = verify_table_compatibility(a)
             a = int(e_table[f"{a:x}"], 16)
-
             b = int(l_table[array[1][i]], 16) + int(l_table[mult_matrix[j][1]], 16)
             b = verify_table_compatibility(b)
             b = int(e_table[f"{b:x}"], 16)
-
             c = int(l_table[array[2][i]], 16) + int(l_table[mult_matrix[j][2]], 16)
             c = verify_table_compatibility(c)
             c = int(e_table[f"{c:x}"], 16)
-
             d = int(l_table[array[3][i]], 16) + int(l_table[mult_matrix[j][3]], 16)
             d = verify_table_compatibility(d)
             d = int(e_table[f"{d:x}"], 16)
-
-            print(f"{a:x}")
-            print(f"{b:x}")
-            print(f"{c:x}")
-            print(f"{d:x}")
-
             mix_state[j][i] = a ^ b ^ c ^ d
-
-            print(f"mix_state: {mix_state}")
-
-    print(int(e_table[f"{int(l_table['d4'], 16) + int(l_table['02'], 16):x}"], 16) ^
-                int(e_table[f"{int(l_table['bf'], 16) + int(l_table['03'], 16):x}"], 16) ^
-                int(e_table[f"{int(l_table['5d'], 16) + int(l_table['01'], 16):x}"], 16) ^
-                int(e_table[f"{int(l_table['30'], 16) + int(l_table['01'], 16):x}"], 16))
+    print(f"mix_state: {mix_state}")
+    return mix_state
 
 
 def verify_table_compatibility(var):
@@ -156,7 +138,7 @@ def encrypt(message, key, s_box):
     # Desloca as linhas do array com os passos 0, 1, 2 e 3 para cada linha, respectivamente
     shift_rows(new_array)
 
-    mix_columns(new_array)
+    mixed_state = mix_columns(new_array)
 
 
 # Execução
