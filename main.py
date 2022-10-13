@@ -91,6 +91,15 @@ def shift_rows_inv(array):
     print(array)
 
 
+def mix_columns(array):
+    # For aninhado q passa por colunas ao invés de linhas
+    for i in range(0, 4):
+        for j in range(0, 4):
+            print(array[j][i])
+            array[j][i] = "{0:08b}".format(int(array[j][i], 16))
+            print(array[j][i])
+
+
 def encrypt(message, key, s_box):
     # Transforma a mensagem e a chave em hexadecimal de acordo com a tabela ASCII
     message = to_hex_array(message)
@@ -104,6 +113,8 @@ def encrypt(message, key, s_box):
 
     # Desloca as linhas do array com os passos 0, 1, 2 e 3 para cada linha, respectivamente
     shift_rows(new_array)
+
+    mix_columns(new_array)
 
 # Execução
 
@@ -209,6 +220,14 @@ s_box_map_inv = {
 
     'f0': '17', 'f1': '2b', 'f2': '04', 'f3': '7e', 'f4': 'ba', 'f5': '77', 'f6': 'd6', 'f7': '26', 'f8': 'e1',
     'f9': '69', 'fa': '14', 'fb': '63', 'fc': '55', 'fd': '21', 'fe': '0c', 'ff': '7d',  # linha f
+}
+
+e_table = {
+    '00': '01', '01': '03', '02': '05', '03': '0f', '04': '11', '05': '33', '06': '55', '07': 'ff', '08': '1a',
+    '09': '2e', '0a': '72', '0b': '96', '0c': 'a1', '0d': 'f8', '0e': '13', '0f': '35',  # linha 0
+
+    '10': '5f', '11': 'e1', '12': '38', '13': '48', '14': 'd8', '15': '73', '16': '95', '17': 'a4', '18': 'f7',
+    '19': '02', '1a': '06', '1b': '0a', '1c': '1e', '1d': '22', '1e': '66', '1f': 'aa',  # linha 1
 }
 # Criptografia
 encrypt(user_input, encryption_key, s_box_map)
