@@ -33,8 +33,8 @@ def to_hex_array(input_string):
             x += 1
         # Transpõe o block_array e o coloca dentro do input_array.
         if (y == 3 and x == 4) or i == len(input_string) - 1:
-            block_array_transposed = block_array[:][:]
-            transpose(block_array, block_array_transposed)
+            # ***
+            block_array = np.transpose(block_array)
             # Atenção! transforma a array em 3D
             text_array.append(block_array.copy())
             x = 0
@@ -60,8 +60,8 @@ def add_round_key(array, key):
 def sub_byte(array, s_box):
     for i in range(0, 4):
         for j in range(0, 4):
-            # transforma '0' em '00' para possibilitar o sub-byte na s-box
-            if array[i][j] == '0':
+            # faz com que todos os números tenham duas casas, para possibilitar a comparação com as tabelas (ex: f = 0f)
+            if len(array[i][j]) == 1:
                 array[i][j] = int(array[i][j], 16)
                 array[i][j] = format(array[i][j], "02x")
             # passa a array pela s-box
@@ -146,6 +146,8 @@ def encrypt(message, key, s_box):
 
 user_input = "Two One Nine Two"
 encryption_key = "Thats my Kung Fu"
+
+# Rijndael S-box
 s_box_map = {
     '00': '63', '01': '7c', '02': '77', '03': '7b', '04': 'f2', '05': '6b', '06': '6f', '07': 'c5', '08': '30',
     '09': '01', '0a': '67', '0b': '2b', '0c': 'fe', '0d': 'd7', '0e': 'ab', '0f': '76',  # linha 0
@@ -171,19 +173,14 @@ s_box_map = {
     'a9': 'd3', 'aa': 'ac', 'ab': '62', 'ac': '91', 'ad': '95', 'ae': 'e4', 'af': '79',  # linha a
     'b0': 'e7', 'b1': 'c8', 'b2': '37', 'b3': '6d', 'b4': '8d', 'b5': 'd5', 'b6': '4e', 'b7': 'a9', 'b8': '6c',
     'b9': '56', 'ba': 'f4', 'bb': 'ea', 'bc': '65', 'bd': '7a', 'be': 'ae', 'bf': '08',  # linha b
-
     'c0': 'ba', 'c1': '78', 'c2': '25', 'c3': '2e', 'c4': '1c', 'c5': 'a6', 'c6': 'b4', 'c7': 'c6', 'c8': 'e8',
     'c9': 'dd', 'ca': '74', 'cb': '1f', 'cc': '4b', 'cd': 'bd', 'ce': '8b', 'cf': '8a',  # linha c
-
     'd0': '70', 'd1': '3e', 'd2': 'b5', 'd3': '66', 'd4': '48', 'd5': '03', 'd6': 'f6', 'd7': '0e', 'd8': '61',
     'd9': '35', 'da': '57', 'db': 'b9', 'dc': '86', 'dd': 'c1', 'de': '1d', 'df': '9e',  # linha d
-
     'e0': 'e1', 'e1': 'f8', 'e2': '98', 'e3': '11', 'e4': '69', 'e5': 'd9', 'e6': '8e', 'e7': '94', 'e8': '9b',
     'e9': '1e', 'ea': '87', 'eb': 'e9', 'ec': 'ce', 'ed': '55', 'ee': '28', 'ef': 'df',  # linha e
-
     'f0': '8c', 'f1': 'a1', 'f2': '89', 'f3': '0d', 'f4': 'bf', 'f5': 'e6', 'f6': '42', 'f7': '68', 'f8': '41',
     'f9': '99', 'fa': '2d', 'fb': '0f', 'fc': 'b0', 'fd': '54', 'fe': 'bb', 'ff': '16',  # linha f
-
 }
 
 s_box_map_inv = {
