@@ -1,13 +1,14 @@
 import numpy as np
 from tables import s_box_map, s_box_map_inv, e_table, l_table
+from key_expansion import rot_word, sub_word, rcon, expansion_xor
 
 
 # Funções
 
 
 def convert_to_hex(var):
-    var = format(ord(var), "02x")
-    return var
+    var_hex = format(ord(var), "02x")
+    return var_hex
 
 
 def transpose(matrix_a, matrix_res):
@@ -42,7 +43,7 @@ def to_hex_array(input_string):
             y = 0
             block_array = [["", "", "", ""], ["", "", "", ""], ["", "", "", ""], ["", "", "", ""]]
             continue
-    print(f"hex: {text_array}")
+    print(f"hex: {text_array}\n")
     return text_array
 
 
@@ -54,7 +55,7 @@ def add_round_key(array, key):
             new_array[i][j] = int(array[0][i][j], 16) ^ int(key[0][i][j], 16)
             new_array[i][j] = chr(new_array[i][j])
             new_array[i][j] = format(ord(str(new_array[i][j])), "x")
-    print(f"round-key: {new_array}")
+    print(f"round-key: {new_array}\n")
     return new_array
 
 
@@ -67,14 +68,14 @@ def sub_byte(array, s_box):
                 array[i][j] = format(array[i][j], "02x")
             # passa a array pela s-box
             array[i][j] = s_box[array[i][j]]
-    print(f"sub-byte: {array}")
+    print(f"sub-byte: {array}\n")
 
 
 def sub_byte_inv(array, s_box_inv):
     for i in range(0, 4):
         for j in range(0, 4):
             array[i][j] = s_box_inv[array[i][j]]
-    print(f"sub-byte-inv: {array}")
+    print(f"sub-byte-inv: {array}\n")
 
 
 def shift_rows(array):
@@ -82,7 +83,7 @@ def shift_rows(array):
     for i in range(1, 4):
         offset += 1
         array[i] = np.roll(array[i], -offset)
-    print(f"shift rows: {array}")
+    print(f"shift rows: {array}\n")
 
 
 def shift_rows_inv(array):
@@ -113,7 +114,7 @@ def mix_columns(array):
             d = verify_table_compatibility(d)
             d = int(e_table[f"{d:x}"], 16)
             mix_state[j][i] = a ^ b ^ c ^ d
-    print(f"mix_state: {mix_state}")
+    print(f"mix_state: {mix_state}\n")
     return mix_state
 
 
@@ -126,9 +127,11 @@ def verify_table_compatibility(var):
 
 
 def encrypt(message, key, s_box):
-    # Transforma a mensagem e a chave em hexadecimal de acordo com a tabela ASCII
+    # Transforma a mensagem e a chave em hexadecimal conforme a tabela ASCII
     message = to_hex_array(message)
     key = to_hex_array(key)
+    # guarda uma cópia da chave de criptografia após passar pelo
+    key_copy = key.copy()
 
     # Faz um XOR  entre a mensagem e a chave
     new_array = add_round_key(message, key)
@@ -136,10 +139,17 @@ def encrypt(message, key, s_box):
     # Passa o resultado do passo anterior por uma S_box
     sub_byte(new_array, s_box)
 
-    # Desloca as linhas do array com os passos 0, 1, 2 e 3 para cada linha, respectivamente
+    # Desloca as linhas do array com os passos 0, 1, 2 e 3 para cada linha, respetivamente
     shift_rows(new_array)
 
+    # Realiza cálculos matemáticos para "embaralhar" a lista.
     mixed_state = mix_columns(new_array)
+
+    # expansão de chave
+    key = rot_word(key)
+    key = sub_word(key)
+    key = rcon(key)
+    key = expansion_xor(key, key_copy)
 
 
 # Execução
