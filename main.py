@@ -1,6 +1,6 @@
 import numpy as np
 from tables import s_box_map, s_box_map_inv, e_table, l_table
-from key_expansion import rot_word, sub_word, rcon, expansion_xor
+from key_expansion import key_expansion
 
 
 # Funções
@@ -114,6 +114,7 @@ def mix_columns(array):
             d = verify_table_compatibility(d)
             d = int(e_table[f"{d:x}"], 16)
             mix_state[j][i] = a ^ b ^ c ^ d
+            mix_state[j][i] = [f"{mix_state[j][i]:x}"]
     print(f"mix_state: {mix_state}\n")
     return mix_state
 
@@ -126,30 +127,23 @@ def verify_table_compatibility(var):
     return var
 
 
+# engloba todas as funções de criptografia
 def encrypt(message, key, s_box):
     # Transforma a mensagem e a chave em hexadecimal conforme a tabela ASCII
     message = to_hex_array(message)
     key = to_hex_array(key)
-    # guarda uma cópia da chave de criptografia após passar pelo
+    # guarda uma cópia da chave de criptografia
     key_copy = key.copy()
-
     # Faz um XOR  entre a mensagem e a chave
     new_array = add_round_key(message, key)
-
     # Passa o resultado do passo anterior por uma S_box
     sub_byte(new_array, s_box)
-
     # Desloca as linhas do array com os passos 0, 1, 2 e 3 para cada linha, respetivamente
     shift_rows(new_array)
-
     # Realiza cálculos matemáticos para "embaralhar" a lista.
     mixed_state = mix_columns(new_array)
-
     # expansão de chave
-    key = rot_word(key)
-    key = sub_word(key)
-    key = rcon(key)
-    key = expansion_xor(key, key_copy)
+    key_expansion(key, key_copy)
 
 
 # Execução
