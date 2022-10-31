@@ -50,7 +50,6 @@ def expansion_xor(rcon_key, original_key):
         state_res[e][0] = f"{element:x}"
     for x in range(1, 4):
         for y in range(0, 4):
-            # print(f"{state_res[0][y][x - 1]} xor {original_key[0][y][x]}")
             # faz o XOR das três colunas restantes
             element = int(state_res[y][x - 1], 16) ^ int(original_key[y][x], 16)
             element = f"{element:x}"
