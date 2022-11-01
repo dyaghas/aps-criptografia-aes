@@ -13,9 +13,9 @@ def rot_word(key):
     # previne que o input seja alterado
     state_array = copy.deepcopy(key)
     for i in range(0, 4):
-        state_array[0][i][3] = key[0][i - 3][3]
+        state_array[i][3] = key[i - 3][3]
         # verifica se todas as strings hexadecimais possuem dois digitos
-        state_array[0][i][3] = force_two_digits(state_array[0][i][3])
+        state_array[i][3] = force_two_digits(state_array[i][3])
     # print(f"\nrotWord key:\n {state_array}\n")
     return state_array
 
@@ -25,7 +25,7 @@ def sub_word(rot_key):
     state_res = copy.deepcopy(rot_key)
     # Substitui os valores através de uma s_box
     for i in range(0, 4):
-        state_res[0][i][3] = s_box_map[state_res[0][i][3]]
+        state_res[i][3] = s_box_map[state_res[i][3]]
     # print(f"\nsubWord key:\n {state_res}\n")
     return state_res
 
@@ -33,10 +33,10 @@ def sub_word(rot_key):
 def rcon(sub_key, loop_num):
     # Previne que o input seja alterado
     state_res = copy.deepcopy(sub_key)
-    rcon_res = int(sub_key[0][0][3], 16)
+    rcon_res = int(sub_key[0][3], 16)
     rcon_res = rcon_res ^ rcon_dict[loop_num]
     rcon_res = f"{rcon_res:x}"
-    state_res[0][0][3] = rcon_res
+    state_res[0][3] = rcon_res
     # print(f"rcon:\n{state_res}\n")
     return state_res
 
@@ -45,23 +45,24 @@ def expansion_xor(rcon_key, original_key):
     state_res = copy.deepcopy(rcon_key)
     # faz o XOR da primeira coluna da chave retornada na função rcon com a chave original
     for e in range(0, 4):
-        element = int(rcon_key[0][e][0], 16) ^ int(rcon_key[0][e][3], 16)
+        element = int(rcon_key[e][0], 16) ^ int(rcon_key[e][3], 16)
         # guarda o elemento do cálculo anterior no índice especificado
-        state_res[0][e][0] = f"{element:x}"
+        state_res[e][0] = f"{element:x}"
     for x in range(1, 4):
         for y in range(0, 4):
-            # print(f"{state_res[0][y][x - 1]} xor {original_key[0][y][x]}")
             # faz o XOR das três colunas restantes
-            element = int(state_res[0][y][x - 1], 16) ^ int(original_key[0][y][x], 16)
+            element = int(state_res[y][x - 1], 16) ^ int(original_key[y][x], 16)
             element = f"{element:x}"
-            state_res[0][y][x] = element
-    print(f"next round key:\n{state_res}")
+            state_res[y][x] = element
+    # print(f"next round key:\n{state_res}")
     return state_res
 
 
 # engloba todas as funções da expansão de chave
 def key_expansion(key, key_copy):
     key_expanded = []
+    first_key = copy.deepcopy(key)
+    key_expanded.append(first_key)
     key_fragment = copy.deepcopy(key)
     key_state = copy.deepcopy(key_copy)
     for i in range(1, 11):
@@ -71,4 +72,5 @@ def key_expansion(key, key_copy):
         key_fragment = expansion_xor(key_fragment, key_state)
         key_state = copy.deepcopy(key_fragment)
         key_expanded.append(key_state)
-    print(f"entire key:\n{key_expanded}")
+    # print(f"entire key:\n{key_expanded}")
+    return key_expanded

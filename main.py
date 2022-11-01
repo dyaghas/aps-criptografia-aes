@@ -1,3 +1,5 @@
+import copy
+
 import numpy as np
 from tables import s_box_map, s_box_map_inv, e_table, l_table
 from key_expansion import key_expansion
@@ -8,6 +10,7 @@ from key_expansion import key_expansion
 
 def convert_to_hex(var):
     var_hex = format(ord(var), "02x")
+    # print(f"{var}   {var_hex}")
     return var_hex
 
 
@@ -35,10 +38,8 @@ def to_hex_array(input_string):
             x += 1
         # Transpõe o block_array e o coloca dentro do input_array.
         if (y == 3 and x == 4) or i == len(input_string) - 1:
-            # ***
             block_array = np.transpose(block_array)
-            # Atenção! transforma a array em 3D
-            text_array.append(block_array.copy())
+            text_array = copy.deepcopy(block_array)
             x = 0
             y = 0
             block_array = [["", "", "", ""], ["", "", "", ""], ["", "", "", ""], ["", "", "", ""]]
@@ -52,9 +53,10 @@ def add_round_key(array, key):
     for i in range(0, 4):
         for j in range(0, 4):
             # Adiciona a round key através de um XOR com o input
-            new_array[i][j] = int(array[0][i][j], 16) ^ int(key[0][i][j], 16)
+            new_array[i][j] = int(array[i][j], 16) ^ int(key[i][j], 16)
             new_array[i][j] = chr(new_array[i][j])
             new_array[i][j] = format(ord(str(new_array[i][j])), "x")
+            # print(f"{array[i][j]} XOR {key[i][j]} = {new_array[i][j]}")
     print(f"round-key: {new_array}\n")
     return new_array
 
@@ -101,20 +103,32 @@ def mix_columns(array):
     # For aninhado q passa por colunas ao invés de linhas
     for i in range(0, 4):
         for j in range(0, 4):
-            a = int(l_table[array[0][i]], 16) + int(l_table[mult_matrix[j][0]], 16)
-            a = verify_table_compatibility(a)
-            a = int(e_table[f"{a:x}"], 16)
-            b = int(l_table[array[1][i]], 16) + int(l_table[mult_matrix[j][1]], 16)
-            b = verify_table_compatibility(b)
-            b = int(e_table[f"{b:x}"], 16)
-            c = int(l_table[array[2][i]], 16) + int(l_table[mult_matrix[j][2]], 16)
-            c = verify_table_compatibility(c)
-            c = int(e_table[f"{c:x}"], 16)
-            d = int(l_table[array[3][i]], 16) + int(l_table[mult_matrix[j][3]], 16)
-            d = verify_table_compatibility(d)
-            d = int(e_table[f"{d:x}"], 16)
+            if array[0][i] != '00' and mult_matrix[j][0] != '00':
+                a = int(l_table[array[0][i]], 16) + int(l_table[mult_matrix[j][0]], 16)
+                a = verify_table_compatibility(a)
+            else:
+                a = 0
+
+            if array[1][i] != '00' and mult_matrix[j][1] != '00':
+                b = int(l_table[array[1][i]], 16) + int(l_table[mult_matrix[j][1]], 16)
+                b = verify_table_compatibility(b)
+            else:
+                b = 0
+
+            if array[2][i] != '00' and mult_matrix[j][2] != '00':
+                c = int(l_table[array[2][i]], 16) + int(l_table[mult_matrix[j][2]], 16)
+                c = verify_table_compatibility(c)
+            else:
+                c = 0
+
+            if array[3][i] != '00' and mult_matrix[j][3] != '00':
+                d = int(l_table[array[3][i]], 16) + int(l_table[mult_matrix[j][3]], 16)
+                d = verify_table_compatibility(d)
+            else:
+                d = 0
+
             mix_state[j][i] = a ^ b ^ c ^ d
-            mix_state[j][i] = [f"{mix_state[j][i]:x}"]
+            mix_state[j][i] = f"{mix_state[j][i]:x}"
     print(f"mix_state: {mix_state}\n")
     return mix_state
 
@@ -124,6 +138,7 @@ def verify_table_compatibility(var):
     # e_table e l_table.
     if len(f"{var:x}") > 2:
         var = var - 0xff
+    var = int(e_table[f"{var:02x}"], 16)
     return var
 
 
@@ -134,19 +149,36 @@ def encrypt(message, key, s_box):
     key = to_hex_array(key)
     # guarda uma cópia da chave de criptografia
     key_copy = key.copy()
-    # Faz um XOR  entre a mensagem e a chave
-    new_array = add_round_key(message, key)
-    # Passa o resultado do passo anterior por uma S_box
-    sub_byte(new_array, s_box)
-    # Desloca as linhas do array com os passos 0, 1, 2 e 3 para cada linha, respetivamente
-    shift_rows(new_array)
-    # Realiza cálculos matemáticos para "embaralhar" a lista.
-    mixed_state = mix_columns(new_array)
     # expansão de chave
-    key_expansion(key, key_copy)
+    key_expanded = key_expansion(key, key_copy)
+    # print(f"Expanded key:\n{key_expanded}\n")
+    # Faz um XOR  entre a mensagem e a chave
+    new_array = add_round_key(message, key_expanded[0])
+    res = new_array
+    print(f"round 0 key: {res}")
+
+    for i in range(1, 10):
+        print(f"round: {i}\n")
+        # Passa o resultado do passo anterior por uma S_box
+        sub_byte(new_array, s_box)
+        # Desloca as linhas do array com os passos 0, 1, 2 e 3 para cada linha, respetivamente
+        shift_rows(new_array)
+        # Realiza cálculos matemáticos para "embaralhar" a lista.
+        new_array = mix_columns(new_array)
+        new_array = add_round_key(new_array, key_expanded[i])
+        res = new_array
+        print(f"round {i} key: {res}\n")
+
+    sub_byte(new_array, s_box)
+    shift_rows(new_array)
+    new_array = add_round_key(new_array, key_expanded[10])
+    res = new_array
+    print(f"last round key: {res}\n")
 
 
 # Execução
+# key: 54 68 61 74 73 20 6d 79 20 4b 75 6e 67 20 46 75
+# message: 54 77 6f 20 4f 6e 65 20 4e 69 6e 65 20 54 77 6f
 user_input = "Two One Nine Two"
 encryption_key = "Thats my Kung Fu"
 
