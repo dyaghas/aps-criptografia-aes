@@ -103,14 +103,30 @@ def mix_columns(array):
     # For aninhado q passa por colunas ao invés de linhas
     for i in range(0, 4):
         for j in range(0, 4):
-            a = int(l_table[array[0][i]], 16) + int(l_table[mult_matrix[j][0]], 16)
-            a = verify_table_compatibility(a)
-            b = int(l_table[array[1][i]], 16) + int(l_table[mult_matrix[j][1]], 16)
-            b = verify_table_compatibility(b)
-            c = int(l_table[array[2][i]], 16) + int(l_table[mult_matrix[j][2]], 16)
-            c = verify_table_compatibility(c)
-            d = int(l_table[array[3][i]], 16) + int(l_table[mult_matrix[j][3]], 16)
-            d = verify_table_compatibility(d)
+            if array[0][i] != '00' and mult_matrix[j][0] != '00':
+                a = int(l_table[array[0][i]], 16) + int(l_table[mult_matrix[j][0]], 16)
+                a = verify_table_compatibility(a)
+            else:
+                a = 0
+
+            if array[1][i] != '00' and mult_matrix[j][1] != '00':
+                b = int(l_table[array[1][i]], 16) + int(l_table[mult_matrix[j][1]], 16)
+                b = verify_table_compatibility(b)
+            else:
+                b = 0
+
+            if array[2][i] != '00' and mult_matrix[j][2] != '00':
+                c = int(l_table[array[2][i]], 16) + int(l_table[mult_matrix[j][2]], 16)
+                c = verify_table_compatibility(c)
+            else:
+                c = 0
+
+            if array[3][i] != '00' and mult_matrix[j][3] != '00':
+                d = int(l_table[array[3][i]], 16) + int(l_table[mult_matrix[j][3]], 16)
+                d = verify_table_compatibility(d)
+            else:
+                d = 0
+
             mix_state[j][i] = a ^ b ^ c ^ d
             mix_state[j][i] = f"{mix_state[j][i]:x}"
     print(f"mix_state: {mix_state}\n")
@@ -120,17 +136,14 @@ def mix_columns(array):
 def verify_table_compatibility(var):
     # caso o número hexadecimal seja maior do que FF, deve-se subtrair FF de seu valor para que ele possa ser usado na
     # e_table e l_table.
-    print(f"dec: {var}")
     if len(f"{var:x}") > 2:
         var = var - 0xff
     var = int(e_table[f"{var:02x}"], 16)
-    print(f"hex: {var}")
     return var
 
 
 # engloba todas as funções de criptografia
 def encrypt(message, key, s_box):
-    res = [[], [], [], [], [], [], [], [], [], [], []]
     # Transforma a mensagem e a chave em hexadecimal conforme a tabela ASCII
     message = to_hex_array(message)
     key = to_hex_array(key)
@@ -141,10 +154,10 @@ def encrypt(message, key, s_box):
     # print(f"Expanded key:\n{key_expanded}\n")
     # Faz um XOR  entre a mensagem e a chave
     new_array = add_round_key(message, key_expanded[0])
-    res[0] = new_array
-    print(f"round 0 key: {res[0]}")
+    res = new_array
+    print(f"round 0 key: {res}")
 
-    for i in range(1, 9):
+    for i in range(1, 10):
         print(f"round: {i}\n")
         # Passa o resultado do passo anterior por uma S_box
         sub_byte(new_array, s_box)
@@ -153,9 +166,14 @@ def encrypt(message, key, s_box):
         # Realiza cálculos matemáticos para "embaralhar" a lista.
         new_array = mix_columns(new_array)
         new_array = add_round_key(new_array, key_expanded[i])
-        res[i] = new_array
-        print(f"round {i} key: {res[i]}\n")
-        print(res)
+        res = new_array
+        print(f"round {i} key: {res}\n")
+
+    sub_byte(new_array, s_box)
+    shift_rows(new_array)
+    new_array = add_round_key(new_array, key_expanded[10])
+    res = new_array
+    print(f"last round key: {res}\n")
 
 
 # Execução
