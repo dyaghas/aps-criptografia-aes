@@ -163,6 +163,7 @@ def verify_table_compatibility(var):
 
 # engloba todas as funções de criptografia
 def encrypt(msg_array, key, s_box):
+    res = []
     key = to_hex_array(key)
     # guarda uma cópia da chave de criptografia
     key_copy = key.copy()
@@ -173,8 +174,8 @@ def encrypt(msg_array, key, s_box):
         msg_array[m] = to_hex_array(msg_array[m])
         # Faz um XOR  entre a mensagem e a chave
         new_array = add_round_key(msg_array[m], key_expanded[0])
-        res = new_array
-        print(f"round 0 key: {res}")
+        state = new_array
+        print(f"round 0 key: {state}")
         # loop responsável pelos rounds 1-9. Os rounds 0 e 10 possuem características únicas
         for i in range(1, 10):
             print(f"round: {i}\n")
@@ -186,23 +187,26 @@ def encrypt(msg_array, key, s_box):
             new_array = mix_columns(new_array)
             # faz um XOR entre o resultado e a chave do round atual
             new_array = add_round_key(new_array, key_expanded[i])
-            res = new_array
-            print(f"round {i} state: {res}\n")
+            state = new_array
+            print(f"round {i} state: {state}\n")
         # último round
         sub_byte(new_array, s_box)
         shift_rows(new_array)
         new_array = add_round_key(new_array, key_expanded[10])
-        res = new_array
-        print(f"last round state: {res}\n")
+        state = new_array
+        res.append(state)
+        print(f"last round state: {state}\n")
+    return res
 
 
 # Execução
 # key: 54 68 61 74 73 20 6d 79 20 4b 75 6e 67 20 46 75
 # message: 54 77 6f 20 4f 6e 65 20 4e 69 6e 65 20 54 77 6f
-user_input = "Two One Nine TwoAbbCD Audowsgjfe Uwd f jbNv aowqeas"
+user_input = "Two One Nine TwoAbbCD Audowsgjfe Uwd f jbNv aowq easUotn  cd wta AoCkw i2 jwsjat ahjtUWEamwduotr kwuQQorubncIvTd"
 encryption_key = "Thats my Kung Fu"
 
 message = message_to_block(user_input)
 
 # Criptografia
-encrypt(message, encryption_key, s_box_map)
+encrypted_msg = encrypt(message, encryption_key, s_box_map)
+print(f"encrypted message: {encrypted_msg}")
