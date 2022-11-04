@@ -21,7 +21,8 @@ def transpose(matrix_a, matrix_res):
 
 
 def to_hex_array(input_string):
-    block_array = [["", "", "", ""], ["", "", "", ""], ["", "", "", ""], ["", "", "", ""]]
+    block_array = [["20", "20", "20", "20"], ["20", "20", "20", "20"],
+                   ["20", "20", "20", "20"], ["20", "20", "20", "20"]]
     text_array = []
     x = 0
     y = 0
@@ -103,32 +104,33 @@ def mix_columns(array):
     # For aninhado q passa por colunas ao invés de linhas
     for i in range(0, 4):
         for j in range(0, 4):
-            if array[0][i] != '00' and mult_matrix[j][0] != '00':
+            # print(f"({l_table[array[0][i]]} = {array[0][i]}) + ({l_table[mult_matrix[j][0]]} = {mult_matrix[j][0]})")
+            # print(f"({l_table[array[1][i]]} = {array[1][i]}) + ({l_table[mult_matrix[j][1]]} = {mult_matrix[j][1]})")
+            # print(f"({l_table[array[2][i]]} = {array[2][i]}) + ({l_table[mult_matrix[j][2]]} = {mult_matrix[j][2]})")
+            # print(f"({l_table[array[3][i]]} = {array[3][i]}) + ({l_table[mult_matrix[j][3]]} = {mult_matrix[j][3]})")
+            if array[0][i] != '00':
                 a = int(l_table[array[0][i]], 16) + int(l_table[mult_matrix[j][0]], 16)
                 a = verify_table_compatibility(a)
             else:
                 a = 0
-
-            if array[1][i] != '00' and mult_matrix[j][1] != '00':
+            if array[1][i] != '00':
                 b = int(l_table[array[1][i]], 16) + int(l_table[mult_matrix[j][1]], 16)
                 b = verify_table_compatibility(b)
             else:
                 b = 0
-
-            if array[2][i] != '00' and mult_matrix[j][2] != '00':
+            if array[2][i] != '00':
                 c = int(l_table[array[2][i]], 16) + int(l_table[mult_matrix[j][2]], 16)
                 c = verify_table_compatibility(c)
             else:
                 c = 0
-
-            if array[3][i] != '00' and mult_matrix[j][3] != '00':
+            if array[3][i] != '00':
                 d = int(l_table[array[3][i]], 16) + int(l_table[mult_matrix[j][3]], 16)
                 d = verify_table_compatibility(d)
             else:
                 d = 0
-
             mix_state[j][i] = a ^ b ^ c ^ d
             mix_state[j][i] = f"{mix_state[j][i]:x}"
+            print(f"{a} {b} {c} {d} = {mix_state[j][i]}")
     print(f"mix_state: {mix_state}\n")
     return mix_state
 
@@ -151,12 +153,11 @@ def encrypt(message, key, s_box):
     key_copy = key.copy()
     # expansão de chave
     key_expanded = key_expansion(key, key_copy)
-    # print(f"Expanded key:\n{key_expanded}\n")
     # Faz um XOR  entre a mensagem e a chave
     new_array = add_round_key(message, key_expanded[0])
     res = new_array
     print(f"round 0 key: {res}")
-
+    # loop responsável pelos rounds 1-9. Os rounds 0 e 10 são feitos fora do loop porque possuem caraterísticas únicas
     for i in range(1, 10):
         print(f"round: {i}\n")
         # Passa o resultado do passo anterior por uma S_box
@@ -165,10 +166,11 @@ def encrypt(message, key, s_box):
         shift_rows(new_array)
         # Realiza cálculos matemáticos para "embaralhar" a lista.
         new_array = mix_columns(new_array)
+        # faz um XOR entre o resultado e a chave do round atual
         new_array = add_round_key(new_array, key_expanded[i])
         res = new_array
         print(f"round {i} key: {res}\n")
-
+    # último round
     sub_byte(new_array, s_box)
     shift_rows(new_array)
     new_array = add_round_key(new_array, key_expanded[10])
