@@ -20,13 +20,30 @@ def transpose(matrix_a, matrix_res):
             matrix_res[a][b] = matrix_a[b][a]
 
 
+# divide a mensagem em blocos de 16 bytes e guarda-os em uma lista
+def message_to_block(string):
+    message_block = []
+    str_instance = ""
+    for i in range(0, len(string), 16):
+        for e in range(i, i + 16):
+            print(f"i: {i} e: {e}")
+            try:
+                str_instance = str_instance + string[e]
+            except Exception:
+                str_instance = str_instance + " "
+        message_block.append(str_instance)
+        str_instance = ""
+    print(message_block)
+    return message_block
+
+
 def to_hex_array(input_string):
     block_array = [["20", "20", "20", "20"], ["20", "20", "20", "20"],
                    ["20", "20", "20", "20"], ["20", "20", "20", "20"]]
     text_array = []
     x = 0
     y = 0
-    for i in range(0, len(input_string)):
+    for i in range(0, 16):
         if x < 4:
             block_array[y][x] = convert_to_hex(input_string[i])
             x += 1
@@ -130,7 +147,7 @@ def mix_columns(array):
                 d = 0
             mix_state[j][i] = a ^ b ^ c ^ d
             mix_state[j][i] = f"{mix_state[j][i]:x}"
-            print(f"{a} {b} {c} {d} = {mix_state[j][i]}")
+            # print(f"{a} {b} {c} {d} = {mix_state[j][i]}")
     print(f"mix_state: {mix_state}\n")
     return mix_state
 
@@ -145,44 +162,47 @@ def verify_table_compatibility(var):
 
 
 # engloba todas as funções de criptografia
-def encrypt(message, key, s_box):
-    # Transforma a mensagem e a chave em hexadecimal conforme a tabela ASCII
-    message = to_hex_array(message)
+def encrypt(msg_array, key, s_box):
     key = to_hex_array(key)
     # guarda uma cópia da chave de criptografia
     key_copy = key.copy()
     # expansão de chave
     key_expanded = key_expansion(key, key_copy)
-    # Faz um XOR  entre a mensagem e a chave
-    new_array = add_round_key(message, key_expanded[0])
-    res = new_array
-    print(f"round 0 key: {res}")
-    # loop responsável pelos rounds 1-9. Os rounds 0 e 10 são feitos fora do loop porque possuem caraterísticas únicas
-    for i in range(1, 10):
-        print(f"round: {i}\n")
-        # Passa o resultado do passo anterior por uma S_box
-        sub_byte(new_array, s_box)
-        # Desloca as linhas do array com os passos 0, 1, 2 e 3 para cada linha, respetivamente
-        shift_rows(new_array)
-        # Realiza cálculos matemáticos para "embaralhar" a lista.
-        new_array = mix_columns(new_array)
-        # faz um XOR entre o resultado e a chave do round atual
-        new_array = add_round_key(new_array, key_expanded[i])
+    for m in range(0, len(msg_array)):
+        # Transforma a mensagem em hexadecimal conforme a tabela ASCII
+        msg_array[m] = to_hex_array(msg_array[m])
+        # Faz um XOR  entre a mensagem e a chave
+        new_array = add_round_key(msg_array[m], key_expanded[0])
         res = new_array
-        print(f"round {i} key: {res}\n")
-    # último round
-    sub_byte(new_array, s_box)
-    shift_rows(new_array)
-    new_array = add_round_key(new_array, key_expanded[10])
-    res = new_array
-    print(f"last round key: {res}\n")
+        print(f"round 0 key: {res}")
+        # loop responsável pelos rounds 1-9. Os rounds 0 e 10 possuem características únicas
+        for i in range(1, 10):
+            print(f"round: {i}\n")
+            # Passa o resultado do passo anterior por uma S_box
+            sub_byte(new_array, s_box)
+            # Desloca as linhas do array com os passos 0, 1, 2 e 3 para cada linha, respetivamente
+            shift_rows(new_array)
+            # Realiza cálculos matemáticos para "embaralhar" a lista.
+            new_array = mix_columns(new_array)
+            # faz um XOR entre o resultado e a chave do round atual
+            new_array = add_round_key(new_array, key_expanded[i])
+            res = new_array
+            print(f"round {i} state: {res}\n")
+        # último round
+        sub_byte(new_array, s_box)
+        shift_rows(new_array)
+        new_array = add_round_key(new_array, key_expanded[10])
+        res = new_array
+        print(f"last round state: {res}\n")
 
 
 # Execução
 # key: 54 68 61 74 73 20 6d 79 20 4b 75 6e 67 20 46 75
 # message: 54 77 6f 20 4f 6e 65 20 4e 69 6e 65 20 54 77 6f
-user_input = "Two One Nine Two"
+user_input = "Two One Nine TwoAbbCD Audowsgjfe Uwd f jbNv aowqeas"
 encryption_key = "Thats my Kung Fu"
 
+message = message_to_block(user_input)
+
 # Criptografia
-encrypt(user_input, encryption_key, s_box_map)
+encrypt(message, encryption_key, s_box_map)
