@@ -16,7 +16,6 @@ def rot_word(key):
         state_array[i][3] = key[i - 3][3]
         # verifica se todas as strings hexadecimais possuem dois digitos
         state_array[i][3] = force_two_digits(state_array[i][3])
-    # print(f"\nrotWord key:\n {state_array}\n")
     return state_array
 
 
@@ -26,7 +25,6 @@ def sub_word(rot_key):
     # Substitui os valores através de uma s_box
     for i in range(0, 4):
         state_res[i][3] = s_box_map[state_res[i][3]]
-    # print(f"\nsubWord key:\n {state_res}\n")
     return state_res
 
 
@@ -37,7 +35,6 @@ def rcon(sub_key, loop_num):
     rcon_res = rcon_res ^ rcon_dict[loop_num]
     rcon_res = f"{rcon_res:x}"
     state_res[0][3] = rcon_res
-    # print(f"rcon:\n{state_res}\n")
     return state_res
 
 
@@ -54,7 +51,6 @@ def expansion_xor(rcon_key, original_key):
             element = int(state_res[y][x - 1], 16) ^ int(original_key[y][x], 16)
             element = f"{element:x}"
             state_res[y][x] = element
-    # print(f"next round key:\n{state_res}")
     return state_res
 
 
@@ -65,6 +61,7 @@ def key_expansion(key, key_copy):
     key_expanded.append(first_key)
     key_fragment = copy.deepcopy(key)
     key_state = copy.deepcopy(key_copy)
+    # cria uma chave para cada round de criptografia
     for i in range(1, 11):
         key_fragment = rot_word(key_fragment)
         key_fragment = sub_word(key_fragment)
@@ -72,5 +69,4 @@ def key_expansion(key, key_copy):
         key_fragment = expansion_xor(key_fragment, key_state)
         key_state = copy.deepcopy(key_fragment)
         key_expanded.append(key_state)
-    # print(f"entire key:\n{key_expanded}")
     return key_expanded
