@@ -82,14 +82,13 @@ def add_round_key(array, key):
 
 
 def sub_byte(array, s_box):
-    for i in range(0, 4):
-        for j in range(0, 4):
+    for a in range(0, 4):
+        for b in range(0, 4):
             # faz com que todos os números tenham duas casas, para possibilitar a comparação com as tabelas (ex: f = 0f)
-            if len(array[i][j]) == 1:
-                array[i][j] = int(array[i][j], 16)
-                array[i][j] = format(array[i][j], "02x")
+            if len(array[a][b]) == 1:
+                array[a][b] = '0' + array[a][b]
             # passa a array pela s-box
-            array[i][j] = s_box[array[i][j]]
+            array[a][b] = s_box[array[a][b]]
     print(f"sub-byte: {array}\n")
 
 
@@ -123,10 +122,6 @@ def mix_columns(array):
     # For aninhado q passa por colunas ao invés de linhas
     for i in range(0, 4):
         for j in range(0, 4):
-            # print(f"({l_table[array[0][i]]} = {array[0][i]}) + ({l_table[mult_matrix[j][0]]} = {mult_matrix[j][0]})")
-            # print(f"({l_table[array[1][i]]} = {array[1][i]}) + ({l_table[mult_matrix[j][1]]} = {mult_matrix[j][1]})")
-            # print(f"({l_table[array[2][i]]} = {array[2][i]}) + ({l_table[mult_matrix[j][2]]} = {mult_matrix[j][2]})")
-            # print(f"({l_table[array[3][i]]} = {array[3][i]}) + ({l_table[mult_matrix[j][3]]} = {mult_matrix[j][3]})")
             if array[0][i] != '00':
                 a = int(l_table[array[0][i]], 16) + int(l_table[mult_matrix[j][0]], 16)
                 a = verify_table_compatibility(a)
@@ -169,6 +164,10 @@ def mix_columns_inv(array):
     mix_state = [[0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00]]
     for i in range(0, 4):
         for j in range(0, 4):
+            # print(f"({l_table[array[0][i]]} = {array[0][i]}) + ({l_table[mult_matrix[j][0]]} = {mult_matrix[j][0]})")
+            # print(f"({l_table[array[1][i]]} = {array[1][i]}) + ({l_table[mult_matrix[j][1]]} = {mult_matrix[j][1]})")
+            # print(f"({l_table[array[2][i]]} = {array[2][i]}) + ({l_table[mult_matrix[j][2]]} = {mult_matrix[j][2]})")
+            # print(f"({l_table[array[3][i]]} = {array[3][i]}) + ({l_table[mult_matrix[j][3]]} = {mult_matrix[j][3]})")
             if array[0][i] != '00':
                 a = int(l_table[array[0][i]], 16) + int(l_table[mult_matrix[j][0]], 16)
                 a = verify_table_compatibility(a)
@@ -192,6 +191,7 @@ def mix_columns_inv(array):
             mix_state[j][i] = a ^ b ^ c ^ d
             mix_state[j][i] = f"{mix_state[j][i]:x}"
     print(mix_state)
+    return mix_state
 
 
 # engloba todas as funções de criptografia
@@ -244,6 +244,18 @@ key_final = key_expansion(key, key_copy)
 encrypted_msg = encrypt(message, key_final, s_box_map)
 print(f"encrypted message: {encrypted_msg}\n")
 
-# for x in range(0, 4):
-    # decrypt_state = add_round_key()
-    # mix_columns_inv(encrypted_msg[x])
+# print(encrypted_msg[6])
+# print(key_final[6])
+
+print(f"----DECRYPTION----\n message: {encrypted_msg[6]}")
+decrypt_state = add_round_key(encrypted_msg[6], key_final[10])
+shift_rows_inv(decrypt_state)
+sub_byte(decrypt_state, s_box_map_inv)
+decrypt_state = add_round_key(decrypt_state, key_final[9])
+decrypt_state = mix_columns_inv(decrypt_state)
+for i in range(1, 2):
+    print(i)
+    shift_rows_inv(decrypt_state)
+    sub_byte(decrypt_state, s_box_map_inv)
+    decrypt_state = add_round_key(decrypt_state, key_final[10 - i - 1])
+    decrypt_state = mix_columns_inv(decrypt_state)
