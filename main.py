@@ -24,11 +24,10 @@ def transpose(matrix_a, matrix_res):
 def message_to_block(string):
     message_block = []
     str_instance = ""
-    for i in range(0, len(string), 16):
-        for e in range(i, i + 16):
-            print(f"i: {i} e: {e}")
+    for a in range(0, len(string), 16):
+        for b in range(a, a + 16):
             try:
-                str_instance = str_instance + string[e]
+                str_instance = str_instance + string[b]
             except Exception:
                 str_instance = str_instance + " "
         message_block.append(str_instance)
@@ -61,7 +60,7 @@ def to_hex_array(input_string):
             y = 0
             block_array = [["", "", "", ""], ["", "", "", ""], ["", "", "", ""], ["", "", "", ""]]
             continue
-    print(f"hex: {text_array}\n")
+    # print(f"hex: {text_array}\n")
     return text_array
 
 
@@ -77,7 +76,7 @@ def add_round_key(array, key):
             if len(new_array[i][j]) < 2:
                 new_array[i][j] = '0' + new_array[i][j]
             # print(f"{array[i][j]} XOR {key[i][j]} = {new_array[i][j]}")
-    print(f"round-key: {new_array}\n")
+    # print(f"round-key: {new_array}\n")
     return new_array
 
 
@@ -89,14 +88,14 @@ def sub_byte(array, s_box):
                 array[a][b] = '0' + array[a][b]
             # passa a array pela s-box
             array[a][b] = s_box[array[a][b]]
-    print(f"sub-byte: {array}\n")
+    # print(f"sub-byte: {array}\n")
 
 
 def sub_byte_inv(array, s_box_inv):
     for i in range(0, 4):
         for j in range(0, 4):
             array[i][j] = s_box_inv[array[i][j]]
-    print(f"sub-byte-inv: {array}\n")
+    # print(f"sub-byte-inv: {array}\n")
 
 
 def shift_rows(array):
@@ -104,7 +103,7 @@ def shift_rows(array):
     for i in range(1, 4):
         offset += 1
         array[i] = np.roll(array[i], -offset)
-    print(f"shift rows: {array}\n")
+    # print(f"shift rows: {array}\n")
 
 
 def shift_rows_inv(array):
@@ -112,7 +111,7 @@ def shift_rows_inv(array):
     for i in range(1, 4):
         offset += 1
         array[i] = np.roll(array[i], offset)
-    print(array)
+    # print(array)
 
 
 def mix_columns(array):
@@ -145,7 +144,7 @@ def mix_columns(array):
             mix_state[j][i] = a ^ b ^ c ^ d
             mix_state[j][i] = f"{mix_state[j][i]:x}"
             # print(f"{a} {b} {c} {d} = {mix_state[j][i]}")
-    print(f"mix_state: {mix_state}\n")
+    # print(f"mix_state: {mix_state}\n")
     return mix_state
 
 
@@ -190,7 +189,7 @@ def mix_columns_inv(array):
                 d = 0
             mix_state[j][i] = a ^ b ^ c ^ d
             mix_state[j][i] = f"{mix_state[j][i]:x}"
-    print(mix_state)
+    # print(mix_state)
     return mix_state
 
 
@@ -227,10 +226,35 @@ def encrypt(msg_array, key_expanded, s_box):
     return res
 
 
+def decrypt(encrypted_message, key_array, s_box_inv):
+    for x in range(0, len(encrypted_message)):
+        print(f"----DECRYPTION----\n message: {encrypted_message[x]}")
+        # descriptografia de 16 bytes realizadas em 10 rounds
+        # round 10 (decrescente)
+        decrypt_state = add_round_key(encrypted_message[x], key_array[10])
+        shift_rows_inv(decrypt_state)
+        sub_byte(decrypt_state, s_box_inv)
+        decrypt_state = add_round_key(decrypt_state, key_array[9])
+        decrypt_state = mix_columns_inv(decrypt_state)
+        decrypted_message = []
+        # round 9 ao 2
+        for i in range(1, 9):
+            # print(i)
+            shift_rows_inv(decrypt_state)
+            sub_byte(decrypt_state, s_box_inv)
+            decrypt_state = add_round_key(decrypt_state, key_array[10 - i - 1])
+            decrypt_state = mix_columns_inv(decrypt_state)
+        # round 1
+        shift_rows_inv(decrypt_state)
+        sub_byte(decrypt_state, s_box_inv)
+        decrypt_state = add_round_key(decrypt_state, key_array[0])
+        print(f"{decrypt_state}\n")
+
+
 # Execução
 # key: 54 68 61 74 73 20 6d 79 20 4b 75 6e 67 20 46 75
 # message: 54 77 6f 20 4f 6e 65 20 4e 69 6e 65 20 54 77 6f
-user_input = "Two One Nine TwoAbbCD Audowsgjfe Uwd f jbNv aowq easUotn  cd wta AoCkw i2 jwsjat ahjtUWEamwduotr kwuQQorubncIvTd"
+user_input = "Two One Nine TwoAbbCD Audowsgjfe Uwd f jbNv aowq easUotn  cd wta AoCkw i2 jwsjat ahjtUWEamwduotr kwuQQorubncIvTd aduwjdyfhgorutr"
 encryption_key = "Thats my Kung Fu"
 
 message = message_to_block(user_input)
@@ -244,18 +268,6 @@ key_final = key_expansion(key, key_copy)
 encrypted_msg = encrypt(message, key_final, s_box_map)
 print(f"encrypted message: {encrypted_msg}\n")
 
-# print(encrypted_msg[6])
-# print(key_final[6])
+# Descriptografia
+decrypt(encrypted_msg, key_final, s_box_map_inv)
 
-print(f"----DECRYPTION----\n message: {encrypted_msg[6]}")
-decrypt_state = add_round_key(encrypted_msg[6], key_final[10])
-shift_rows_inv(decrypt_state)
-sub_byte(decrypt_state, s_box_map_inv)
-decrypt_state = add_round_key(decrypt_state, key_final[9])
-decrypt_state = mix_columns_inv(decrypt_state)
-for i in range(1, 2):
-    print(i)
-    shift_rows_inv(decrypt_state)
-    sub_byte(decrypt_state, s_box_map_inv)
-    decrypt_state = add_round_key(decrypt_state, key_final[10 - i - 1])
-    decrypt_state = mix_columns_inv(decrypt_state)
