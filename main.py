@@ -33,7 +33,6 @@ def message_to_block(string):
                 str_instance = str_instance + " "
         message_block.append(str_instance)
         str_instance = ""
-    print(message_block)
     return message_block
 
 
@@ -74,6 +73,9 @@ def add_round_key(array, key):
             new_array[i][j] = int(array[i][j], 16) ^ int(key[i][j], 16)
             new_array[i][j] = chr(new_array[i][j])
             new_array[i][j] = format(ord(str(new_array[i][j])), "x")
+            # verifica se todos os elementos possuem dois algarismos
+            if len(new_array[i][j]) < 2:
+                new_array[i][j] = '0' + new_array[i][j]
             # print(f"{array[i][j]} XOR {key[i][j]} = {new_array[i][j]}")
     print(f"round-key: {new_array}\n")
     return new_array
@@ -161,14 +163,40 @@ def verify_table_compatibility(var):
     return var
 
 
+def mix_columns_inv(array):
+    mult_matrix = [['0e', '0b', '0d', '09'], ['09', '0e', '0b', '0d'], ['0d', '09', '0e', '0b'],
+                   ['0b', '0d', '09', '0e']]
+    mix_state = [[0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00]]
+    for i in range(0, 4):
+        for j in range(0, 4):
+            if array[0][i] != '00':
+                a = int(l_table[array[0][i]], 16) + int(l_table[mult_matrix[j][0]], 16)
+                a = verify_table_compatibility(a)
+            else:
+                a = 0
+            if array[1][i] != '00':
+                b = int(l_table[array[1][i]], 16) + int(l_table[mult_matrix[j][1]], 16)
+                b = verify_table_compatibility(b)
+            else:
+                b = 0
+            if array[2][i] != '00':
+                c = int(l_table[array[2][i]], 16) + int(l_table[mult_matrix[j][2]], 16)
+                c = verify_table_compatibility(c)
+            else:
+                c = 0
+            if array[3][i] != '00':
+                d = int(l_table[array[3][i]], 16) + int(l_table[mult_matrix[j][3]], 16)
+                d = verify_table_compatibility(d)
+            else:
+                d = 0
+            mix_state[j][i] = a ^ b ^ c ^ d
+            mix_state[j][i] = f"{mix_state[j][i]:x}"
+    print(mix_state)
+
+
 # engloba todas as funções de criptografia
-def encrypt(msg_array, key, s_box):
+def encrypt(msg_array, key_expanded, s_box):
     res = []
-    key = to_hex_array(key)
-    # guarda uma cópia da chave de criptografia
-    key_copy = key.copy()
-    # expansão de chave
-    key_expanded = key_expansion(key, key_copy)
     for m in range(0, len(msg_array)):
         # Transforma a mensagem em hexadecimal conforme a tabela ASCII
         msg_array[m] = to_hex_array(msg_array[m])
@@ -208,5 +236,14 @@ encryption_key = "Thats my Kung Fu"
 message = message_to_block(user_input)
 
 # Criptografia
-encrypted_msg = encrypt(message, encryption_key, s_box_map)
-print(f"encrypted message: {encrypted_msg}")
+key = to_hex_array(encryption_key)
+# guarda uma cópia da chave de criptografia
+key_copy = key.copy()
+# expansão de chave
+key_final = key_expansion(key, key_copy)
+encrypted_msg = encrypt(message, key_final, s_box_map)
+print(f"encrypted message: {encrypted_msg}\n")
+
+# for x in range(0, 4):
+    # decrypt_state = add_round_key()
+    # mix_columns_inv(encrypted_msg[x])
