@@ -10,7 +10,6 @@ from key_expansion import key_expansion
 
 def convert_to_hex(var):
     var_hex = format(ord(var), "02x")
-    # print(f"{var}   {var_hex}")
     return var_hex
 
 
@@ -24,16 +23,14 @@ def transpose(matrix_a, matrix_res):
 def message_to_block(string):
     message_block = []
     str_instance = ""
-    for i in range(0, len(string), 16):
-        for e in range(i, i + 16):
-            print(f"i: {i} e: {e}")
+    for a in range(0, len(string), 16):
+        for b in range(a, a + 16):
             try:
-                str_instance = str_instance + string[e]
+                str_instance = str_instance + string[b]
             except Exception:
                 str_instance = str_instance + " "
         message_block.append(str_instance)
         str_instance = ""
-    print(message_block)
     return message_block
 
 
@@ -41,77 +38,72 @@ def to_hex_array(input_string):
     block_array = [["20", "20", "20", "20"], ["20", "20", "20", "20"],
                    ["20", "20", "20", "20"], ["20", "20", "20", "20"]]
     text_array = []
-    x = 0
-    y = 0
-    for i in range(0, 16):
-        if x < 4:
-            block_array[y][x] = convert_to_hex(input_string[i])
-            x += 1
-        elif y < 3:
-            x = 0
-            y += 1
-            block_array[y][x] = convert_to_hex(input_string[i])
+    a = 0
+    b = 0
+    for e in range(0, 16):
+        if a < 4:
+            block_array[b][a] = convert_to_hex(input_string[e])
+            a += 1
+        elif b < 3:
+            a = 0
+            b += 1
+            block_array[b][a] = convert_to_hex(input_string[e])
             # Evita que a última letra de cada bloco dentro de block_array seja substituida pela primeira do bloco
             # seguinte
-            x += 1
+            a += 1
         # Transpõe o block_array e o coloca dentro do input_array.
-        if (y == 3 and x == 4) or i == len(input_string) - 1:
+        if (b == 3 and a == 4) or e == len(input_string) - 1:
             block_array = np.transpose(block_array)
             text_array = copy.deepcopy(block_array)
-            x = 0
-            y = 0
+            a = 0
+            b = 0
             block_array = [["", "", "", ""], ["", "", "", ""], ["", "", "", ""], ["", "", "", ""]]
             continue
-    print(f"hex: {text_array}\n")
     return text_array
 
 
 def add_round_key(array, key):
     new_array = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
-    for i in range(0, 4):
+    for e in range(0, 4):
         for j in range(0, 4):
             # Adiciona a round key através de um XOR com o input
-            new_array[i][j] = int(array[i][j], 16) ^ int(key[i][j], 16)
-            new_array[i][j] = chr(new_array[i][j])
-            new_array[i][j] = format(ord(str(new_array[i][j])), "x")
-            # print(f"{array[i][j]} XOR {key[i][j]} = {new_array[i][j]}")
-    print(f"round-key: {new_array}\n")
+            new_array[e][j] = int(array[e][j], 16) ^ int(key[e][j], 16)
+            new_array[e][j] = chr(new_array[e][j])
+            new_array[e][j] = format(ord(str(new_array[e][j])), "x")
+            # verifica se todos os elementos possuem dois algarismos
+            if len(new_array[e][j]) < 2:
+                new_array[e][j] = '0' + new_array[e][j]
     return new_array
 
 
 def sub_byte(array, s_box):
-    for i in range(0, 4):
-        for j in range(0, 4):
+    for a in range(0, 4):
+        for b in range(0, 4):
             # faz com que todos os números tenham duas casas, para possibilitar a comparação com as tabelas (ex: f = 0f)
-            if len(array[i][j]) == 1:
-                array[i][j] = int(array[i][j], 16)
-                array[i][j] = format(array[i][j], "02x")
+            if len(array[a][b]) == 1:
+                array[a][b] = '0' + array[a][b]
             # passa a array pela s-box
-            array[i][j] = s_box[array[i][j]]
-    print(f"sub-byte: {array}\n")
+            array[a][b] = s_box[array[a][b]]
 
 
 def sub_byte_inv(array, s_box_inv):
-    for i in range(0, 4):
+    for e in range(0, 4):
         for j in range(0, 4):
-            array[i][j] = s_box_inv[array[i][j]]
-    print(f"sub-byte-inv: {array}\n")
+            array[e][j] = s_box_inv[array[e][j]]
 
 
 def shift_rows(array):
     offset = 0
-    for i in range(1, 4):
+    for e in range(1, 4):
         offset += 1
-        array[i] = np.roll(array[i], -offset)
-    print(f"shift rows: {array}\n")
+        array[e] = np.roll(array[e], -offset)
 
 
 def shift_rows_inv(array):
     offset = 0
-    for i in range(1, 4):
+    for e in range(1, 4):
         offset += 1
-        array[i] = np.roll(array[i], offset)
-    print(array)
+        array[e] = np.roll(array[e], offset)
 
 
 def mix_columns(array):
@@ -119,36 +111,30 @@ def mix_columns(array):
                    ['03', '01', '01', '02']]
     mix_state = [[0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00]]
     # For aninhado q passa por colunas ao invés de linhas
-    for i in range(0, 4):
+    for e in range(0, 4):
         for j in range(0, 4):
-            # print(f"({l_table[array[0][i]]} = {array[0][i]}) + ({l_table[mult_matrix[j][0]]} = {mult_matrix[j][0]})")
-            # print(f"({l_table[array[1][i]]} = {array[1][i]}) + ({l_table[mult_matrix[j][1]]} = {mult_matrix[j][1]})")
-            # print(f"({l_table[array[2][i]]} = {array[2][i]}) + ({l_table[mult_matrix[j][2]]} = {mult_matrix[j][2]})")
-            # print(f"({l_table[array[3][i]]} = {array[3][i]}) + ({l_table[mult_matrix[j][3]]} = {mult_matrix[j][3]})")
-            if array[0][i] != '00':
-                a = int(l_table[array[0][i]], 16) + int(l_table[mult_matrix[j][0]], 16)
+            if array[0][e] != '00':
+                a = int(l_table[array[0][e]], 16) + int(l_table[mult_matrix[j][0]], 16)
                 a = verify_table_compatibility(a)
             else:
                 a = 0
-            if array[1][i] != '00':
-                b = int(l_table[array[1][i]], 16) + int(l_table[mult_matrix[j][1]], 16)
+            if array[1][e] != '00':
+                b = int(l_table[array[1][e]], 16) + int(l_table[mult_matrix[j][1]], 16)
                 b = verify_table_compatibility(b)
             else:
                 b = 0
-            if array[2][i] != '00':
-                c = int(l_table[array[2][i]], 16) + int(l_table[mult_matrix[j][2]], 16)
+            if array[2][e] != '00':
+                c = int(l_table[array[2][e]], 16) + int(l_table[mult_matrix[j][2]], 16)
                 c = verify_table_compatibility(c)
             else:
                 c = 0
-            if array[3][i] != '00':
-                d = int(l_table[array[3][i]], 16) + int(l_table[mult_matrix[j][3]], 16)
+            if array[3][e] != '00':
+                d = int(l_table[array[3][e]], 16) + int(l_table[mult_matrix[j][3]], 16)
                 d = verify_table_compatibility(d)
             else:
                 d = 0
-            mix_state[j][i] = a ^ b ^ c ^ d
-            mix_state[j][i] = f"{mix_state[j][i]:x}"
-            # print(f"{a} {b} {c} {d} = {mix_state[j][i]}")
-    print(f"mix_state: {mix_state}\n")
+            mix_state[j][e] = a ^ b ^ c ^ d
+            mix_state[j][e] = f"{mix_state[j][e]:x}"
     return mix_state
 
 
@@ -161,24 +147,48 @@ def verify_table_compatibility(var):
     return var
 
 
+def mix_columns_inv(array):
+    mult_matrix = [['0e', '0b', '0d', '09'], ['09', '0e', '0b', '0d'], ['0d', '09', '0e', '0b'],
+                   ['0b', '0d', '09', '0e']]
+    mix_state = [[0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00]]
+    for e in range(0, 4):
+        for j in range(0, 4):
+            if array[0][e] != '00':
+                a = int(l_table[array[0][e]], 16) + int(l_table[mult_matrix[j][0]], 16)
+                a = verify_table_compatibility(a)
+            else:
+                a = 0
+            if array[1][e] != '00':
+                b = int(l_table[array[1][e]], 16) + int(l_table[mult_matrix[j][1]], 16)
+                b = verify_table_compatibility(b)
+            else:
+                b = 0
+            if array[2][e] != '00':
+                c = int(l_table[array[2][e]], 16) + int(l_table[mult_matrix[j][2]], 16)
+                c = verify_table_compatibility(c)
+            else:
+                c = 0
+            if array[3][e] != '00':
+                d = int(l_table[array[3][e]], 16) + int(l_table[mult_matrix[j][3]], 16)
+                d = verify_table_compatibility(d)
+            else:
+                d = 0
+            mix_state[j][e] = a ^ b ^ c ^ d
+            mix_state[j][e] = f"{mix_state[j][e]:x}"
+    return mix_state
+
+
 # engloba todas as funções de criptografia
-def encrypt(msg_array, key, s_box):
+def encrypt(msg_array, key_expanded, s_box):
     res = []
-    key = to_hex_array(key)
-    # guarda uma cópia da chave de criptografia
-    key_copy = key.copy()
-    # expansão de chave
-    key_expanded = key_expansion(key, key_copy)
     for m in range(0, len(msg_array)):
         # Transforma a mensagem em hexadecimal conforme a tabela ASCII
         msg_array[m] = to_hex_array(msg_array[m])
         # Faz um XOR  entre a mensagem e a chave
         new_array = add_round_key(msg_array[m], key_expanded[0])
         state = new_array
-        print(f"round 0 key: {state}")
         # loop responsável pelos rounds 1-9. Os rounds 0 e 10 possuem características únicas
-        for i in range(1, 10):
-            print(f"round: {i}\n")
+        for a in range(1, 10):
             # Passa o resultado do passo anterior por uma S_box
             sub_byte(new_array, s_box)
             # Desloca as linhas do array com os passos 0, 1, 2 e 3 para cada linha, respetivamente
@@ -186,27 +196,65 @@ def encrypt(msg_array, key, s_box):
             # Realiza cálculos matemáticos para "embaralhar" a lista.
             new_array = mix_columns(new_array)
             # faz um XOR entre o resultado e a chave do round atual
-            new_array = add_round_key(new_array, key_expanded[i])
+            new_array = add_round_key(new_array, key_expanded[a])
             state = new_array
-            print(f"round {i} state: {state}\n")
         # último round
         sub_byte(new_array, s_box)
         shift_rows(new_array)
         new_array = add_round_key(new_array, key_expanded[10])
         state = new_array
         res.append(state)
-        print(f"last round state: {state}\n")
     return res
 
 
+def decrypt(encrypted_message, key_array, s_box_inv):
+    final_message = []
+    for a in range(0, len(encrypted_message)):
+        # descriptografia de 16 bytes realizadas em 10 rounds
+        # round 10 (decrescente)
+        decrypt_state = add_round_key(encrypted_message[a], key_array[10])
+        shift_rows_inv(decrypt_state)
+        sub_byte(decrypt_state, s_box_inv)
+        decrypt_state = add_round_key(decrypt_state, key_array[9])
+        decrypt_state = mix_columns_inv(decrypt_state)
+        # round 9 ao 2
+        for b in range(1, 9):
+            shift_rows_inv(decrypt_state)
+            sub_byte(decrypt_state, s_box_inv)
+            decrypt_state = add_round_key(decrypt_state, key_array[10 - b - 1])
+            decrypt_state = mix_columns_inv(decrypt_state)
+        # round 1
+        shift_rows_inv(decrypt_state)
+        sub_byte(decrypt_state, s_box_inv)
+        decrypt_state = add_round_key(decrypt_state, key_array[0])
+        decrypt_state = np.transpose(decrypt_state)
+        final_message.append(decrypt_state)
+    return final_message
+
+
 # Execução
-# key: 54 68 61 74 73 20 6d 79 20 4b 75 6e 67 20 46 75
-# message: 54 77 6f 20 4f 6e 65 20 4e 69 6e 65 20 54 77 6f
-user_input = "Two One Nine TwoAbbCD Audowsgjfe Uwd f jbNv aowq easUotn  cd wta AoCkw i2 jwsjat ahjtUWEamwduotr kwuQQorubncIvTd"
+user_input = "Two One Nine TwoAbbCD Audowsgjfe Uwd f jbNv aowq easUotn  cd wta AoCkw i2 jwsjat ahjtUWEamwduotr kwuQQorubncIvTd aduwjdyfhgorutr"
 encryption_key = "Thats my Kung Fu"
 
 message = message_to_block(user_input)
 
 # Criptografia
-encrypted_msg = encrypt(message, encryption_key, s_box_map)
-print(f"encrypted message: {encrypted_msg}")
+key = to_hex_array(encryption_key)
+# guarda uma cópia da chave de criptografia
+key_copy = key.copy()
+# expansão de chave
+key_final = key_expansion(key, key_copy)
+encrypted_msg = encrypt(message, key_final, s_box_map)
+print(f"Mensagem criptografada: {encrypted_msg}\n")
+
+# Descriptografia
+decrypted_message = ''
+decryption_state = decrypt(encrypted_msg, key_final, s_box_map_inv)
+for i in range(0, len(decryption_state)):
+    for x in range(0, 4):
+        for y in range(0, 4):
+            # transforma os números hexadecimais em seus caracteres utf-8 correspondentes
+            decryption_state[i][x][y] = bytes.fromhex(decryption_state[i][x][y]).decode('utf-8')
+            decrypted_message = decrypted_message + decryption_state[i][x][y]
+# print(f"\n{decryption_state}")
+print(f"Mensagem descriptografada: {decrypted_message}")
