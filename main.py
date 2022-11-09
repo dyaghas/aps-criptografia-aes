@@ -232,9 +232,20 @@ def decrypt(encrypted_message, key_array, s_box_inv):
     return final_message
 
 
+def encrypted_array_to_line(encrypted_input):
+    encrypted_output = ""
+    for a in range(0, len(encrypted_input)):
+        for b in range(0, 4):
+            for c in range(0, 4):
+                encrypted_output = encrypted_output + encrypted_input[a][b][c]
+    return encrypted_output
+
+
 # Execução
-user_input = "Two One Nine TwoAbbCD Audowsgjfe Uwd f jbNv aowq easUotn  cd wta AoCkw i2 jwsjat ahjtUWEamwduotr kwuQQorubncIvTd aduwjdyfhgorutr"
+user_input = input("Digite a mensagem para ser criptografada: ")
 encryption_key = "Thats my Kung Fu"
+
+print(f"\nmensagem original: {user_input}\n")
 
 message = message_to_block(user_input)
 
@@ -245,7 +256,7 @@ key_copy = key.copy()
 # expansão de chave
 key_final = key_expansion(key, key_copy)
 encrypted_msg = encrypt(message, key_final, s_box_map)
-print(f"Mensagem criptografada: {encrypted_msg}\n")
+print(f"Mensagem criptografada: {encrypted_array_to_line(encrypted_msg)}\n")
 
 # Descriptografia
 decrypted_message = ''
@@ -256,5 +267,4 @@ for i in range(0, len(decryption_state)):
             # transforma os números hexadecimais em seus caracteres utf-8 correspondentes
             decryption_state[i][x][y] = bytes.fromhex(decryption_state[i][x][y]).decode('utf-8')
             decrypted_message = decrypted_message + decryption_state[i][x][y]
-# print(f"\n{decryption_state}")
 print(f"Mensagem descriptografada: {decrypted_message}")
