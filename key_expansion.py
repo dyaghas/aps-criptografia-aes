@@ -10,7 +10,7 @@ def force_two_digits(hex_string):
 
 
 def rot_word(key):
-    # previne que o input seja alterado
+    # previne que o input seja alterado acidentalmente
     state_array = copy.deepcopy(key)
     for i in range(0, 4):
         state_array[i][3] = key[i - 3][3]

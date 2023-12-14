@@ -84,13 +84,6 @@ def sub_byte(array, s_box):
     print(f"Sub byte: ", array, "\n")
 
 
-def sub_byte_inv(array, s_box_inv):
-    for e in range(0, 4):
-        for j in range(0, 4):
-            array[e][j] = s_box_inv[array[e][j]]
-    print(f"Sub byte: ", array, "\n")
-
-
 def shift_rows(array):
     offset = 0
     for e in range(1, 4):
@@ -249,26 +242,24 @@ def encrypted_array_to_line(encrypted_input):
 # Execução
 def execute_encryption(*args):
     user_input = str(original_text.get())
-    encryption_key = "Thats my encryption key"
+    encryption_key = str(encrypt_key.get())
 
     print(f"\nmensagem original: {user_input}\n")
 
     message = text_to_block(user_input)
 
     # Criptografia
-    key = to_hex_array(encryption_key)
+    try:
+        key = to_hex_array(encryption_key)
+    except IndexError:
+        result_label.set("A chave de criptografia precisa ter pelomenos 16 caracteres")
+        result_text.set("")
+        raise Exception("A chave de criptografia precisa ter pelomenos 16 caracteres")
     # guarda uma cópia da chave de criptografia
     key_copy = key.copy()
     # expansão de chave
     key_final = key_expansion(key, key_copy)
     encrypted_msg = encrypt(message, key_final, s_box_map)
-    print(f"Mensagem criptografada: {encrypted_array_to_line(encrypted_msg)}\n")
-    if encrypted_array_to_line(encrypted_msg) != "":
-        result_label.set("Texto criptografado: ")
-        result_text.set(encrypted_array_to_line(encrypted_msg))
-    else:
-        result_label.set("Campo não preenchido")
-        result_text.set("")
 
     # Descriptografia
     try:
@@ -282,7 +273,16 @@ def execute_encryption(*args):
                     decrypted_message = decrypted_message + decryption_state[i][x][y]
     except UnicodeDecodeError:
         print("Caracter inválido - Insira apenas caracteres presentes na tabela ASCII")
+        result_label.set("Caracter inválido - Insira apenas caracteres presentes na tabela ASCII")
+        result_text.set("")
     else:
+        print(f"Mensagem criptografada: {encrypted_array_to_line(encrypted_msg)}\n")
+        if encrypted_array_to_line(encrypted_msg) != "":
+            result_label.set("Texto criptografado: ")
+            result_text.set(encrypted_array_to_line(encrypted_msg))
+        else:
+            result_label.set("Campo não preenchido")
+            result_text.set("")
         print(f"Mensagem descriptografada: {decrypted_message}\n")
 
 
@@ -293,24 +293,36 @@ root.columnconfigure(0, weight=1)
 root.rowconfigure(0, weight=1)
 mainframe = ttk.Frame(root, padding="15 30 15 30")
 mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
-mainframe.columnconfigure(2, weight=1)
-mainframe.rowconfigure(2, weight=1, pad=20)
+mainframe.columnconfigure(1, minsize=40, weight=1, pad=20)
+mainframe.columnconfigure(2, minsize=400, weight=40)
+mainframe.columnconfigure(3, minsize=20, weight=4, pad=20)
+mainframe.rowconfigure(1, minsize=30, pad=10)
+mainframe.rowconfigure(2, minsize=30, pad=10)
+mainframe.rowconfigure(3, minsize=30, pad=20)
+mainframe.rowconfigure(4, weight=1, pad=20)
 
+# Input da chave de criptografia
+ttk.Label(mainframe, text="Chave").grid(column=1, row=1)
+encrypt_key = StringVar()
+encrypt_key_entry = ttk.Entry(mainframe, width=60, textvariable=encrypt_key)
+encrypt_key_entry.grid(column=2, row=1, sticky=(W, E))
 # Input do texto que será criptografado
+ttk.Label(mainframe, text="Texto").grid(column=1, row=2)
 original_text = StringVar()
 original_text_entry = ttk.Entry(mainframe, width=60, textvariable=original_text)
-original_text_entry.grid(column=2, row=1, sticky=(W, E))
+original_text_entry.grid(column=2, row=2, sticky=(W, E))
 
 # Botão "criptografar"
-ttk.Button(mainframe, text="Criptografar", command=execute_encryption).grid(column=3, row=1, sticky=W)
+ttk.Button(mainframe, text="Criptografar", command=execute_encryption).grid(column=2, row=3)
 
+encrypt_key_entry.focus()
 original_text_entry.focus()
 root.bind("<Return>", execute_encryption)
 
 # Texto criptografado
 result_label = StringVar()
-ttk.Label(mainframe, textvariable=result_label).grid(column=2, row=2)
+ttk.Label(mainframe, textvariable=result_label).grid(column=2, row=4)
 result_text = StringVar()
-ttk.Label(mainframe, textvariable=result_text).grid(column=2, row=3)
+ttk.Label(mainframe, textvariable=result_text).grid(column=2, row=5)
 
 root.mainloop()
