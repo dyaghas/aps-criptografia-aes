@@ -1,9 +1,7 @@
 import copy
-
 import numpy as np
 from tables import s_box_map, s_box_map_inv, e_table, l_table
 from key_expansion import key_expansion
-
 
 # Funções
 
@@ -13,21 +11,15 @@ def convert_to_hex(var):
     return var_hex
 
 
-def transpose(matrix_a, matrix_res):
-    for a in range(4):
-        for b in range(4):
-            matrix_res[a][b] = matrix_a[b][a]
-
-
 # divide a mensagem em blocos de 16 bytes e guarda-os em uma lista
-def message_to_block(string):
+def text_to_block(text):
     message_block = []
     str_instance = ""
-    for a in range(0, len(string), 16):
+    for a in range(0, len(text), 16):
         for b in range(a, a + 16):
             try:
-                str_instance = str_instance + string[b]
-            except Exception:
+                str_instance = str_instance + text[b]
+            except IndexError:
                 str_instance = str_instance + " "
         message_block.append(str_instance)
         str_instance = ""
@@ -242,29 +234,35 @@ def encrypted_array_to_line(encrypted_input):
 
 
 # Execução
-user_input = input("Digite a mensagem para ser criptografada: ")
-encryption_key = "Thats my Kung Fu"
+user_input = " "
+while(user_input != ""):
+    user_input = input("Digite a mensagem para ser criptografada: ")
+    encryption_key = "Thats my Kung Fu"
 
-print(f"\nmensagem original: {user_input}\n")
+    print(f"\nmensagem original: {user_input}\n")
 
-message = message_to_block(user_input)
+    message = text_to_block(user_input)
 
-# Criptografia
-key = to_hex_array(encryption_key)
-# guarda uma cópia da chave de criptografia
-key_copy = key.copy()
-# expansão de chave
-key_final = key_expansion(key, key_copy)
-encrypted_msg = encrypt(message, key_final, s_box_map)
-print(f"Mensagem criptografada: {encrypted_array_to_line(encrypted_msg)}\n")
+    # Criptografia
+    key = to_hex_array(encryption_key)
+    # guarda uma cópia da chave de criptografia
+    key_copy = key.copy()
+    # expansão de chave
+    key_final = key_expansion(key, key_copy)
+    encrypted_msg = encrypt(message, key_final, s_box_map)
+    print(f"Mensagem criptografada: {encrypted_array_to_line(encrypted_msg)}\n")
 
-# Descriptografia
-decrypted_message = ''
-decryption_state = decrypt(encrypted_msg, key_final, s_box_map_inv)
-for i in range(0, len(decryption_state)):
-    for x in range(0, 4):
-        for y in range(0, 4):
-            # transforma os números hexadecimais em seus caracteres utf-8 correspondentes
-            decryption_state[i][x][y] = bytes.fromhex(decryption_state[i][x][y]).decode('utf-8')
-            decrypted_message = decrypted_message + decryption_state[i][x][y]
-print(f"Mensagem descriptografada: {decrypted_message}")
+    # Descriptografia
+    try:
+        decrypted_message = ''
+        decryption_state = decrypt(encrypted_msg, key_final, s_box_map_inv)
+        for i in range(0, len(decryption_state)):
+            for x in range(0, 4):
+                for y in range(0, 4):
+                    # transforma os números hexadecimais em seus caracteres utf-8 correspondentes
+                    decryption_state[i][x][y] = bytes.fromhex(decryption_state[i][x][y]).decode('utf-8')
+                    decrypted_message = decrypted_message + decryption_state[i][x][y]
+    except UnicodeDecodeError:
+        print("Caracter inválido - Insira apenas caracteres presentes na tabela ASCII")
+    else:
+        print(f"Mensagem descriptografada: {decrypted_message}\n")
