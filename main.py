@@ -1,11 +1,12 @@
 import copy
 import numpy as np
+from tkinter import *
+from tkinter import ttk
 from tables import s_box_map, s_box_map_inv, e_table, l_table
 from key_expansion import key_expansion
 
+
 # Funções
-
-
 def convert_to_hex(var):
     var_hex = format(ord(var), "02x")
     return var_hex
@@ -246,9 +247,8 @@ def encrypted_array_to_line(encrypted_input):
 
 
 # Execução
-user_input = " "
-while(user_input != ""):
-    user_input = input("Digite a mensagem para ser criptografada: ")
+def execute_encryption():
+    user_input = str(original_text.get())
     encryption_key = "Thats my encryption key"
 
     print(f"\nmensagem original: {user_input}\n")
@@ -263,6 +263,7 @@ while(user_input != ""):
     key_final = key_expansion(key, key_copy)
     encrypted_msg = encrypt(message, key_final, s_box_map)
     print(f"Mensagem criptografada: {encrypted_array_to_line(encrypted_msg)}\n")
+    result_text.set(encrypted_array_to_line(encrypted_msg))
 
     # Descriptografia
     try:
@@ -278,3 +279,26 @@ while(user_input != ""):
         print("Caracter inválido - Insira apenas caracteres presentes na tabela ASCII")
     else:
         print(f"Mensagem descriptografada: {decrypted_message}\n")
+
+
+# Interface
+root = Tk()
+root.title("AES-128")
+
+mainframe = ttk.Frame(root, padding="15 30 15 30")
+mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
+root.columnconfigure(0, weight=1)
+root.rowconfigure(0, weight=1)
+
+original_text = StringVar()
+original_text_entry = ttk.Entry(mainframe, width=60, textvariable=original_text)
+original_text_entry.grid(column=2, row=1, sticky=(W, E))
+
+ttk.Button(mainframe, text="Criptografar", command=execute_encryption).grid(column=3, row=1, sticky=W)
+original_text_entry.focus()
+root.bind("<Return>", execute_encryption)
+
+result_text = StringVar()
+ttk.Label(mainframe, textvariable=result_text).grid(column=2, row=2)
+
+root.mainloop()
