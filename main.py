@@ -13,7 +13,7 @@ def convert_to_hex(var):
 
 # divide a mensagem em blocos de 16 bytes e guarda-os em uma lista
 def text_to_block(text):
-    message_block = []
+    text_block = []
     str_instance = ""
     for a in range(0, len(text), 16):
         for b in range(a, a + 16):
@@ -21,15 +21,17 @@ def text_to_block(text):
                 str_instance = str_instance + text[b]
             except IndexError:
                 str_instance = str_instance + " "
-        message_block.append(str_instance)
+        text_block.append(str_instance)
         str_instance = ""
-    return message_block
+    print(f"Blocos: ", text_block, "\n")
+    return text_block
 
 
 def to_hex_array(input_string):
+    # array preenchido por espaços vazios (valor em hexadecimal)
     block_array = [["20", "20", "20", "20"], ["20", "20", "20", "20"],
                    ["20", "20", "20", "20"], ["20", "20", "20", "20"]]
-    text_array = []
+    hex_array = []
     a = 0
     b = 0
     for e in range(0, 16):
@@ -40,18 +42,19 @@ def to_hex_array(input_string):
             a = 0
             b += 1
             block_array[b][a] = convert_to_hex(input_string[e])
-            # Evita que a última letra de cada bloco dentro de block_array seja substituida pela primeira do bloco
+            # Evita que a última letra de cada linha dentro de block_array seja substituida pela primeira do bloco
             # seguinte
             a += 1
-        # Transpõe o block_array e o coloca dentro do input_array.
+        # Transpõe o block_array.
         if (b == 3 and a == 4) or e == len(input_string) - 1:
             block_array = np.transpose(block_array)
-            text_array = copy.deepcopy(block_array)
+            hex_array = copy.deepcopy(block_array)
             a = 0
             b = 0
             block_array = [["", "", "", ""], ["", "", "", ""], ["", "", "", ""], ["", "", "", ""]]
             continue
-    return text_array
+    print(f"Vetor hexadecimal:\n", hex_array, "\n")
+    return hex_array
 
 
 def add_round_key(array, key):
@@ -65,6 +68,7 @@ def add_round_key(array, key):
             # verifica se todos os elementos possuem dois algarismos
             if len(new_array[e][j]) < 2:
                 new_array[e][j] = '0' + new_array[e][j]
+    print(f"Linha do vetor com round key adicionada: ", new_array, "\n")
     return new_array
 
 
@@ -76,12 +80,14 @@ def sub_byte(array, s_box):
                 array[a][b] = '0' + array[a][b]
             # passa a array pela s-box
             array[a][b] = s_box[array[a][b]]
+    print(f"Sub byte: ", array, "\n")
 
 
 def sub_byte_inv(array, s_box_inv):
     for e in range(0, 4):
         for j in range(0, 4):
             array[e][j] = s_box_inv[array[e][j]]
+    print(f"Sub byte: ", array, "\n")
 
 
 def shift_rows(array):
@@ -89,6 +95,7 @@ def shift_rows(array):
     for e in range(1, 4):
         offset += 1
         array[e] = np.roll(array[e], -offset)
+    print(f"Shift rows:", array, "\n")
 
 
 def shift_rows_inv(array):
@@ -96,6 +103,7 @@ def shift_rows_inv(array):
     for e in range(1, 4):
         offset += 1
         array[e] = np.roll(array[e], offset)
+    print(f"Shift rows: ", array, "\n")
 
 
 def mix_columns(array):
@@ -127,6 +135,7 @@ def mix_columns(array):
                 d = 0
             mix_state[j][e] = a ^ b ^ c ^ d
             mix_state[j][e] = f"{mix_state[j][e]:x}"
+    print(f"Mix columns: ", mix_state, "\n")
     return mix_state
 
 
@@ -167,18 +176,20 @@ def mix_columns_inv(array):
                 d = 0
             mix_state[j][e] = a ^ b ^ c ^ d
             mix_state[j][e] = f"{mix_state[j][e]:x}"
+    print(f"Mix columns: ", mix_state, "\n")
     return mix_state
 
 
 # engloba todas as funções de criptografia
 def encrypt(msg_array, key_expanded, s_box):
-    res = []
+    encrypt_res = []
     for m in range(0, len(msg_array)):
+        # primeiro round
         # Transforma a mensagem em hexadecimal conforme a tabela ASCII
         msg_array[m] = to_hex_array(msg_array[m])
         # Faz um XOR  entre a mensagem e a chave
         new_array = add_round_key(msg_array[m], key_expanded[0])
-        state = new_array
+
         # loop responsável pelos rounds 1-9. Os rounds 0 e 10 possuem características únicas
         for a in range(1, 10):
             # Passa o resultado do passo anterior por uma S_box
@@ -189,14 +200,13 @@ def encrypt(msg_array, key_expanded, s_box):
             new_array = mix_columns(new_array)
             # faz um XOR entre o resultado e a chave do round atual
             new_array = add_round_key(new_array, key_expanded[a])
-            state = new_array
+
         # último round
         sub_byte(new_array, s_box)
         shift_rows(new_array)
         new_array = add_round_key(new_array, key_expanded[10])
-        state = new_array
-        res.append(state)
-    return res
+        encrypt_res.append(new_array)
+    return encrypt_res
 
 
 def decrypt(encrypted_message, key_array, s_box_inv):
@@ -204,23 +214,25 @@ def decrypt(encrypted_message, key_array, s_box_inv):
     for a in range(0, len(encrypted_message)):
         # descriptografia de 16 bytes realizadas em 10 rounds
         # round 10 (decrescente)
-        decrypt_state = add_round_key(encrypted_message[a], key_array[10])
-        shift_rows_inv(decrypt_state)
-        sub_byte(decrypt_state, s_box_inv)
-        decrypt_state = add_round_key(decrypt_state, key_array[9])
-        decrypt_state = mix_columns_inv(decrypt_state)
+        decrypt_res = add_round_key(encrypted_message[a], key_array[10])
+        shift_rows_inv(decrypt_res)
+        sub_byte(decrypt_res, s_box_inv)
+        decrypt_res = add_round_key(decrypt_res, key_array[9])
+        decrypt_res = mix_columns_inv(decrypt_res)
+
         # round 9 ao 2
         for b in range(1, 9):
-            shift_rows_inv(decrypt_state)
-            sub_byte(decrypt_state, s_box_inv)
-            decrypt_state = add_round_key(decrypt_state, key_array[10 - b - 1])
-            decrypt_state = mix_columns_inv(decrypt_state)
+            shift_rows_inv(decrypt_res)
+            sub_byte(decrypt_res, s_box_inv)
+            decrypt_res = add_round_key(decrypt_res, key_array[10 - b - 1])
+            decrypt_res = mix_columns_inv(decrypt_res)
+
         # round 1
-        shift_rows_inv(decrypt_state)
-        sub_byte(decrypt_state, s_box_inv)
-        decrypt_state = add_round_key(decrypt_state, key_array[0])
-        decrypt_state = np.transpose(decrypt_state)
-        final_message.append(decrypt_state)
+        shift_rows_inv(decrypt_res)
+        sub_byte(decrypt_res, s_box_inv)
+        decrypt_res = add_round_key(decrypt_res, key_array[0])
+        decrypt_res = np.transpose(decrypt_res)
+        final_message.append(decrypt_res)
     return final_message
 
 
@@ -237,7 +249,7 @@ def encrypted_array_to_line(encrypted_input):
 user_input = " "
 while(user_input != ""):
     user_input = input("Digite a mensagem para ser criptografada: ")
-    encryption_key = "Thats my Kung Fu"
+    encryption_key = "Thats my encryption key"
 
     print(f"\nmensagem original: {user_input}\n")
 
