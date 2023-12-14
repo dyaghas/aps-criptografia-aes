@@ -247,7 +247,7 @@ def encrypted_array_to_line(encrypted_input):
 
 
 # Execução
-def execute_encryption():
+def execute_encryption(*args):
     user_input = str(original_text.get())
     encryption_key = "Thats my encryption key"
 
@@ -263,7 +263,12 @@ def execute_encryption():
     key_final = key_expansion(key, key_copy)
     encrypted_msg = encrypt(message, key_final, s_box_map)
     print(f"Mensagem criptografada: {encrypted_array_to_line(encrypted_msg)}\n")
-    result_text.set(encrypted_array_to_line(encrypted_msg))
+    if encrypted_array_to_line(encrypted_msg) != "":
+        result_label.set("Texto criptografado: ")
+        result_text.set(encrypted_array_to_line(encrypted_msg))
+    else:
+        result_label.set("Campo não preenchido")
+        result_text.set("")
 
     # Descriptografia
     try:
@@ -284,21 +289,28 @@ def execute_encryption():
 # Interface
 root = Tk()
 root.title("AES-128")
-
-mainframe = ttk.Frame(root, padding="15 30 15 30")
-mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
 root.columnconfigure(0, weight=1)
 root.rowconfigure(0, weight=1)
+mainframe = ttk.Frame(root, padding="15 30 15 30")
+mainframe.grid(column=0, row=0, sticky=(N, W, E, S))
+mainframe.columnconfigure(2, weight=1)
+mainframe.rowconfigure(2, weight=1, pad=20)
 
+# Input do texto que será criptografado
 original_text = StringVar()
 original_text_entry = ttk.Entry(mainframe, width=60, textvariable=original_text)
 original_text_entry.grid(column=2, row=1, sticky=(W, E))
 
+# Botão "criptografar"
 ttk.Button(mainframe, text="Criptografar", command=execute_encryption).grid(column=3, row=1, sticky=W)
+
 original_text_entry.focus()
 root.bind("<Return>", execute_encryption)
 
+# Texto criptografado
+result_label = StringVar()
+ttk.Label(mainframe, textvariable=result_label).grid(column=2, row=2)
 result_text = StringVar()
-ttk.Label(mainframe, textvariable=result_text).grid(column=2, row=2)
+ttk.Label(mainframe, textvariable=result_text).grid(column=2, row=3)
 
 root.mainloop()
