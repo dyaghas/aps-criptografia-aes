@@ -7,7 +7,7 @@ from key_expansion import key_expansion
 
 
 # Funções
-def convert_to_hex(var):
+def string_to_hex(var):
     var_hex = format(ord(var), "02x")
     return var_hex
 
@@ -37,12 +37,12 @@ def to_hex_array(input_string):
     b = 0
     for e in range(0, 16):
         if a < 4:
-            block_array[b][a] = convert_to_hex(input_string[e])
+            block_array[b][a] = string_to_hex(input_string[e])
             a += 1
         elif b < 3:
             a = 0
             b += 1
-            block_array[b][a] = convert_to_hex(input_string[e])
+            block_array[b][a] = string_to_hex(input_string[e])
             # Evita que a última letra de cada linha dentro de block_array seja substituida pela primeira do bloco
             # seguinte
             a += 1
