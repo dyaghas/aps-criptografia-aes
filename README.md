@@ -8,12 +8,12 @@ uma das mais utilizadas e consolidadas na área da cibersegurança. Através do 
 foi possível entender como a mensagem é alterada durante todo o processo, formando o texto cifrado. Foi escolhido a chave de 128 bits devido a sua 
 praticidade, já que esse algoritmo não será implementado em nenhuma situação real.
 
+ O programa possui uma interface gráfica onde é inserida uma chave de criptografia e a mensagem que será criptografada, exibindo o texto cifrado no canto inferior.
+ 
+![aes128-gui](https://github.com/dyaghas/aps-criptografia-aes/assets/56042071/4d9a1052-4be7-4638-99e2-29daa617fddb)
+
 ## Tecnologias
 
-- Python 3.10
-- Numpy 1.23.3
-
-## Como usar
-
- O projeto é extremamente simples de ser executado, necessitando apenas de um compilador de código em Python e a biblioteca Numpy que pode ser instalada
-rapidamente com o comando "pip install numpy".
+- Python
+- Numpy
+- Tkinter
