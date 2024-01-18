@@ -17,3 +17,4 @@ praticidade, já que esse algoritmo não será implementado em nenhuma situaçã
 - Python
 - Numpy
 - Tkinter
+- pytest

@@ -13,13 +13,15 @@ def string_to_hex(var):
 
 
 # divide a mensagem em blocos de 16 bytes e guarda-os em uma lista
-def text_to_block(text):
+def text_to_array(text):
     text_block = []
     str_instance = ""
+    # str_instance recebe 16 caracteres que serão guardados como um vetor na matriz text_block
     for a in range(0, len(text), 16):
         for b in range(a, a + 16):
             try:
                 str_instance = str_instance + text[b]
+            # insere caracteres vazios no final de uma str_instance com menos de 16 caracteres
             except IndexError:
                 str_instance = str_instance + " "
         text_block.append(str_instance)
@@ -28,7 +30,7 @@ def text_to_block(text):
     return text_block
 
 
-def to_hex_array(input_string):
+def text_to_hex_array(input_string):
     # array preenchido por espaços vazios (valor em hexadecimal)
     block_array = [["20", "20", "20", "20"], ["20", "20", "20", "20"],
                    ["20", "20", "20", "20"], ["20", "20", "20", "20"]]
@@ -180,7 +182,7 @@ def encrypt(msg_array, key_expanded, s_box):
     for m in range(0, len(msg_array)):
         # primeiro round
         # Transforma a mensagem em hexadecimal conforme a tabela ASCII
-        msg_array[m] = to_hex_array(msg_array[m])
+        msg_array[m] = text_to_hex_array(msg_array[m])
         # Faz um XOR  entre a mensagem e a chave
         new_array = add_round_key(msg_array[m], key_expanded[0])
 
@@ -246,11 +248,11 @@ def execute_encryption(*args):
 
     print(f"\nmensagem original: {user_input}\n")
 
-    message = text_to_block(user_input)
+    message = text_to_array(user_input)
 
     # Criptografia
     try:
-        key = to_hex_array(encryption_key)
+        key = text_to_hex_array(encryption_key)
     except IndexError:
         result_label.set("A chave de criptografia precisa ter pelomenos 16 caracteres")
         result_text.set("")
