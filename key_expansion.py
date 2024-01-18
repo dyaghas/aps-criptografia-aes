@@ -2,6 +2,8 @@ import copy
 
 from tables import s_box_map, s_box_map_inv, e_table, l_table, rcon_dict
 
+BYTE_SIZE = 4
+ROUNDS = 11
 
 def force_two_digits(hex_string):
     if len(hex_string) < 2:
@@ -12,7 +14,7 @@ def force_two_digits(hex_string):
 def rot_word(key):
     # previne que o input seja alterado acidentalmente
     state_array = copy.deepcopy(key)
-    for i in range(0, 4):
+    for i in range(0, BYTE_SIZE):
         state_array[i][3] = key[i - 3][3]
         # verifica se todas as strings hexadecimais possuem dois digitos
         state_array[i][3] = force_two_digits(state_array[i][3])
@@ -23,7 +25,7 @@ def sub_word(rot_key):
     # Previne que o input seja alterado
     state_res = copy.deepcopy(rot_key)
     # Substitui os valores através de uma s_box
-    for i in range(0, 4):
+    for i in range(0, BYTE_SIZE):
         state_res[i][3] = s_box_map[state_res[i][3]]
     return state_res
 
@@ -41,32 +43,30 @@ def rcon(sub_key, loop_num):
 def expansion_xor(rcon_key, original_key):
     state_res = copy.deepcopy(rcon_key)
     # faz o XOR da primeira coluna da chave retornada na função rcon com a chave original
-    for e in range(0, 4):
-        element = int(rcon_key[e][0], 16) ^ int(rcon_key[e][3], 16)
+    for e in range(0, BYTE_SIZE):
+        element = int(rcon_key[e][0], BYTE_SIZE*4) ^ int(rcon_key[e][3], BYTE_SIZE*4)
         # guarda o elemento do cálculo anterior no índice especificado
         state_res[e][0] = f"{element:x}"
-    for x in range(1, 4):
-        for y in range(0, 4):
+    for x in range(1, BYTE_SIZE):
+        for y in range(0, BYTE_SIZE):
             # faz o XOR das três colunas restantes
-            element = int(state_res[y][x - 1], 16) ^ int(original_key[y][x], 16)
+            element = int(state_res[y][x - 1], BYTE_SIZE*4) ^ int(original_key[y][x], BYTE_SIZE*4)
             element = f"{element:x}"
             state_res[y][x] = element
     return state_res
 
 
 # engloba todas as funções da expansão de chave
-def key_expansion(key, key_copy):
+def key_expansion(key):
     key_expanded = []
-    first_key = copy.deepcopy(key)
-    key_expanded.append(first_key)
+    key_expanded.append(key)
     key_fragment = copy.deepcopy(key)
-    key_state = copy.deepcopy(key_copy)
     # cria uma chave para cada round de criptografia
-    for i in range(1, 11):
+    for i in range(1, ROUNDS):
         key_fragment = rot_word(key_fragment)
         key_fragment = sub_word(key_fragment)
         key_fragment = rcon(key_fragment, i)
-        key_fragment = expansion_xor(key_fragment, key_state)
+        key_fragment = expansion_xor(key_fragment, key)
         key_state = copy.deepcopy(key_fragment)
         key_expanded.append(key_state)
     return key_expanded

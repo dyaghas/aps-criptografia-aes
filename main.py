@@ -5,6 +5,8 @@ from tkinter import ttk
 from tables import s_box_map, s_box_map_inv, e_table, l_table
 from key_expansion import key_expansion
 
+BYTE_SIZE = 4
+
 
 # Funções
 def string_to_hex(var):
@@ -17,8 +19,8 @@ def text_to_array(text):
     text_block = []
     str_instance = ""
     # str_instance recebe 16 caracteres que serão guardados como um vetor na matriz text_block
-    for a in range(0, len(text), 16):
-        for b in range(a, a + 16):
+    for a in range(0, len(text), BYTE_SIZE*4):
+        for b in range(a, a + BYTE_SIZE*4):
             try:
                 str_instance = str_instance + text[b]
             # insere caracteres vazios no final de uma str_instance com menos de 16 caracteres
@@ -37,11 +39,11 @@ def text_to_hex_array(input_string):
     hex_array = []
     a = 0
     b = 0
-    for e in range(0, 16):
-        if a < 4:
+    for e in range(0, BYTE_SIZE*4):
+        if a < BYTE_SIZE:
             block_array[b][a] = string_to_hex(input_string[e])
             a += 1
-        elif b < 3:
+        elif b < BYTE_SIZE-1:
             a = 0
             b += 1
             block_array[b][a] = string_to_hex(input_string[e])
@@ -49,7 +51,7 @@ def text_to_hex_array(input_string):
             # seguinte
             a += 1
         # Transpõe o block_array.
-        if (b == 3 and a == 4) or e == len(input_string) - 1:
+        if (b == BYTE_SIZE-1 and a == BYTE_SIZE) or e == len(input_string) - 1:
             block_array = np.transpose(block_array)
             hex_array = copy.deepcopy(block_array)
             a = 0
@@ -62,8 +64,8 @@ def text_to_hex_array(input_string):
 
 def add_round_key(array, key):
     new_array = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
-    for e in range(0, 4):
-        for j in range(0, 4):
+    for e in range(0, BYTE_SIZE):
+        for j in range(0, BYTE_SIZE):
             # Adiciona a round key através de um XOR com o input
             new_array[e][j] = int(array[e][j], 16) ^ int(key[e][j], 16)
             new_array[e][j] = chr(new_array[e][j])
@@ -76,8 +78,8 @@ def add_round_key(array, key):
 
 
 def sub_byte(array, s_box):
-    for a in range(0, 4):
-        for b in range(0, 4):
+    for a in range(0, BYTE_SIZE):
+        for b in range(0, BYTE_SIZE):
             # faz com que todos os números tenham duas casas, para possibilitar a comparação com as tabelas (ex: f = 0f)
             if len(array[a][b]) == 1:
                 array[a][b] = '0' + array[a][b]
@@ -88,7 +90,7 @@ def sub_byte(array, s_box):
 
 def shift_rows(array):
     offset = 0
-    for e in range(1, 4):
+    for e in range(1, BYTE_SIZE):
         offset += 1
         array[e] = np.roll(array[e], -offset)
     print(f"Shift rows:", array, "\n")
@@ -96,7 +98,7 @@ def shift_rows(array):
 
 def shift_rows_inv(array):
     offset = 0
-    for e in range(1, 4):
+    for e in range(1, BYTE_SIZE):
         offset += 1
         array[e] = np.roll(array[e], offset)
     print(f"Shift rows: ", array, "\n")
@@ -107,25 +109,25 @@ def mix_columns(array):
                    ['03', '01', '01', '02']]
     mix_state = [[0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00]]
     # For aninhado q passa por colunas ao invés de linhas
-    for e in range(0, 4):
-        for j in range(0, 4):
+    for e in range(0, BYTE_SIZE):
+        for j in range(0, BYTE_SIZE):
             if array[0][e] != '00':
-                a = int(l_table[array[0][e]], 16) + int(l_table[mult_matrix[j][0]], 16)
+                a = int(l_table[array[0][e]], BYTE_SIZE*4) + int(l_table[mult_matrix[j][0]], BYTE_SIZE*4)
                 a = verify_table_compatibility(a)
             else:
                 a = 0
             if array[1][e] != '00':
-                b = int(l_table[array[1][e]], 16) + int(l_table[mult_matrix[j][1]], 16)
+                b = int(l_table[array[1][e]], BYTE_SIZE*4) + int(l_table[mult_matrix[j][1]], BYTE_SIZE*4)
                 b = verify_table_compatibility(b)
             else:
                 b = 0
             if array[2][e] != '00':
-                c = int(l_table[array[2][e]], 16) + int(l_table[mult_matrix[j][2]], 16)
+                c = int(l_table[array[2][e]], BYTE_SIZE*4) + int(l_table[mult_matrix[j][2]], BYTE_SIZE*4)
                 c = verify_table_compatibility(c)
             else:
                 c = 0
             if array[3][e] != '00':
-                d = int(l_table[array[3][e]], 16) + int(l_table[mult_matrix[j][3]], 16)
+                d = int(l_table[array[3][e]], BYTE_SIZE*4) + int(l_table[mult_matrix[j][3]], BYTE_SIZE*4)
                 d = verify_table_compatibility(d)
             else:
                 d = 0
@@ -140,7 +142,7 @@ def verify_table_compatibility(var):
     # e_table e l_table.
     if len(f"{var:x}") > 2:
         var = var - 0xff
-    var = int(e_table[f"{var:02x}"], 16)
+    var = int(e_table[f"{var:02x}"], BYTE_SIZE*4)
     return var
 
 
@@ -148,25 +150,25 @@ def mix_columns_inv(array):
     mult_matrix = [['0e', '0b', '0d', '09'], ['09', '0e', '0b', '0d'], ['0d', '09', '0e', '0b'],
                    ['0b', '0d', '09', '0e']]
     mix_state = [[0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00]]
-    for e in range(0, 4):
-        for j in range(0, 4):
+    for e in range(0, BYTE_SIZE):
+        for j in range(0, BYTE_SIZE):
             if array[0][e] != '00':
-                a = int(l_table[array[0][e]], 16) + int(l_table[mult_matrix[j][0]], 16)
+                a = int(l_table[array[0][e]], BYTE_SIZE*4) + int(l_table[mult_matrix[j][0]], BYTE_SIZE*4)
                 a = verify_table_compatibility(a)
             else:
                 a = 0
             if array[1][e] != '00':
-                b = int(l_table[array[1][e]], 16) + int(l_table[mult_matrix[j][1]], 16)
+                b = int(l_table[array[1][e]], BYTE_SIZE*4) + int(l_table[mult_matrix[j][1]], BYTE_SIZE*4)
                 b = verify_table_compatibility(b)
             else:
                 b = 0
             if array[2][e] != '00':
-                c = int(l_table[array[2][e]], 16) + int(l_table[mult_matrix[j][2]], 16)
+                c = int(l_table[array[2][e]], BYTE_SIZE*4) + int(l_table[mult_matrix[j][2]], BYTE_SIZE*4)
                 c = verify_table_compatibility(c)
             else:
                 c = 0
             if array[3][e] != '00':
-                d = int(l_table[array[3][e]], 16) + int(l_table[mult_matrix[j][3]], 16)
+                d = int(l_table[array[3][e]], BYTE_SIZE*4) + int(l_table[mult_matrix[j][3]], BYTE_SIZE*4)
                 d = verify_table_compatibility(d)
             else:
                 d = 0
@@ -235,8 +237,8 @@ def decrypt(encrypted_message, key_array, s_box_inv):
 def encrypted_array_to_line(encrypted_input):
     encrypted_output = ""
     for a in range(0, len(encrypted_input)):
-        for b in range(0, 4):
-            for c in range(0, 4):
+        for b in range(0, BYTE_SIZE):
+            for c in range(0, BYTE_SIZE):
                 encrypted_output = encrypted_output + encrypted_input[a][b][c]
     return encrypted_output
 
@@ -257,10 +259,8 @@ def execute_encryption(*args):
         result_label.set("A chave de criptografia precisa ter pelomenos 16 caracteres")
         result_text.set("")
         raise Exception("A chave de criptografia precisa ter pelomenos 16 caracteres")
-    # guarda uma cópia da chave de criptografia
-    key_copy = key.copy()
     # expansão de chave
-    key_final = key_expansion(key, key_copy)
+    key_final = key_expansion(key)
     encrypted_msg = encrypt(message, key_final, s_box_map)
 
     # Descriptografia
@@ -268,8 +268,8 @@ def execute_encryption(*args):
         decrypted_message = ''
         decryption_state = decrypt(encrypted_msg, key_final, s_box_map_inv)
         for i in range(0, len(decryption_state)):
-            for x in range(0, 4):
-                for y in range(0, 4):
+            for x in range(0, BYTE_SIZE):
+                for y in range(0, BYTE_SIZE):
                     # transforma os números hexadecimais em seus caracteres utf-8 correspondentes
                     decryption_state[i][x][y] = bytes.fromhex(decryption_state[i][x][y]).decode('utf-8')
                     decrypted_message = decrypted_message + decryption_state[i][x][y]
