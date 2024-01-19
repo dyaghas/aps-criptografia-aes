@@ -28,14 +28,16 @@ def text_to_array(text):
                 str_instance = str_instance + " "
         text_block.append(str_instance)
         str_instance = ""
-    print(f"Blocos: ", text_block, "\n")
+    # print(f"Blocos: ", text_block, "\n")
     return text_block
 
 
 def text_to_hex_array(input_string):
     # array preenchido por espaços vazios (valor em hexadecimal)
-    block_array = [["20", "20", "20", "20"], ["20", "20", "20", "20"],
-                   ["20", "20", "20", "20"], ["20", "20", "20", "20"]]
+    block_array = [["20", "20", "20", "20"],
+                   ["20", "20", "20", "20"],
+                   ["20", "20", "20", "20"],
+                   ["20", "20", "20", "20"]]
     hex_array = []
     a = 0
     b = 0
@@ -56,36 +58,36 @@ def text_to_hex_array(input_string):
             hex_array = copy.deepcopy(block_array)
             a = 0
             b = 0
-            block_array = [["", "", "", ""], ["", "", "", ""], ["", "", "", ""], ["", "", "", ""]]
+            block_array = [["", "", "", ""],
+                           ["", "", "", ""],
+                           ["", "", "", ""],
+                           ["", "", "", ""]]
             continue
-    print(f"Vetor hexadecimal:\n", hex_array, "\n")
+    # print(f"Vetor hexadecimal:\n", hex_array, "\n")
     return hex_array
 
 
 def add_round_key(array, key):
-    new_array = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+    res_array = [[0, 0, 0, 0],
+                 [0, 0, 0, 0],
+                 [0, 0, 0, 0],
+                 [0, 0, 0, 0]]
     for e in range(0, BYTE_SIZE):
         for j in range(0, BYTE_SIZE):
             # Adiciona a round key através de um XOR com o input
-            new_array[e][j] = int(array[e][j], 16) ^ int(key[e][j], 16)
-            new_array[e][j] = chr(new_array[e][j])
-            new_array[e][j] = format(ord(str(new_array[e][j])), "x")
-            # verifica se todos os elementos possuem dois algarismos
-            if len(new_array[e][j]) < 2:
-                new_array[e][j] = '0' + new_array[e][j]
-    print(f"Linha do vetor com round key adicionada: ", new_array, "\n")
-    return new_array
+            result_hex = format(int(array[e][j], 16) ^ int(key[e][j], 16), '02x')
+            res_array[e][j] = result_hex
+    # print(f"Linha do vetor com round key adicionada: ", res_array, "\n")
+    return res_array
 
 
 def sub_byte(array, s_box):
-    for a in range(0, BYTE_SIZE):
-        for b in range(0, BYTE_SIZE):
-            # faz com que todos os números tenham duas casas, para possibilitar a comparação com as tabelas (ex: f = 0f)
-            if len(array[a][b]) == 1:
-                array[a][b] = '0' + array[a][b]
-            # passa a array pela s-box
-            array[a][b] = s_box[array[a][b]]
-    print(f"Sub byte: ", array, "\n")
+    for row in array:
+        for i, value in enumerate(row):
+            # faz com que value sempre tenha dois algarismos para possibilitar a comparação com s_box
+            value = value.zfill(2)
+            row[i] = s_box[value]
+    # print(f"Sub byte: ", array, "\n")
 
 
 def shift_rows(array):
@@ -93,7 +95,7 @@ def shift_rows(array):
     for e in range(1, BYTE_SIZE):
         offset += 1
         array[e] = np.roll(array[e], -offset)
-    print(f"Shift rows:", array, "\n")
+    # print(f"Shift rows:", array, "\n")
 
 
 def shift_rows_inv(array):
@@ -101,13 +103,18 @@ def shift_rows_inv(array):
     for e in range(1, BYTE_SIZE):
         offset += 1
         array[e] = np.roll(array[e], offset)
-    print(f"Shift rows: ", array, "\n")
+    # print(f"Shift rows: ", array, "\n")
 
 
 def mix_columns(array):
-    mult_matrix = [['02', '03', '01', '01'], ['01', '02', '03', '01'], ['01', '01', '02', '03'],
+    mult_matrix = [['02', '03', '01', '01'],
+                   ['01', '02', '03', '01'],
+                   ['01', '01', '02', '03'],
                    ['03', '01', '01', '02']]
-    mix_state = [[0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00]]
+    mix_state = [[0x00, 0x00, 0x00, 0x00],
+                 [0x00, 0x00, 0x00, 0x00],
+                 [0x00, 0x00, 0x00, 0x00],
+                 [0x00, 0x00, 0x00, 0x00]]
     # For aninhado q passa por colunas ao invés de linhas
     for e in range(0, BYTE_SIZE):
         for j in range(0, BYTE_SIZE):
@@ -133,7 +140,7 @@ def mix_columns(array):
                 d = 0
             mix_state[j][e] = a ^ b ^ c ^ d
             mix_state[j][e] = f"{mix_state[j][e]:x}"
-    print(f"Mix columns: ", mix_state, "\n")
+    # print(f"Mix columns: ", mix_state, "\n")
     return mix_state
 
 
@@ -147,7 +154,9 @@ def verify_table_compatibility(var):
 
 
 def mix_columns_inv(array):
-    mult_matrix = [['0e', '0b', '0d', '09'], ['09', '0e', '0b', '0d'], ['0d', '09', '0e', '0b'],
+    mult_matrix = [['0e', '0b', '0d', '09'],
+                   ['09', '0e', '0b', '0d'],
+                   ['0d', '09', '0e', '0b'],
                    ['0b', '0d', '09', '0e']]
     mix_state = [[0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00]]
     for e in range(0, BYTE_SIZE):
@@ -174,7 +183,7 @@ def mix_columns_inv(array):
                 d = 0
             mix_state[j][e] = a ^ b ^ c ^ d
             mix_state[j][e] = f"{mix_state[j][e]:x}"
-    print(f"Mix columns: ", mix_state, "\n")
+    # print(f"Mix columns: ", mix_state, "\n")
     return mix_state
 
 
@@ -248,7 +257,7 @@ def execute_encryption(*args):
     user_input = str(original_text.get())
     encryption_key = str(encrypt_key.get())
 
-    print(f"\nmensagem original: {user_input}\n")
+    # print(f"\nmensagem original: {user_input}\n")
 
     message = text_to_array(user_input)
 
@@ -274,18 +283,18 @@ def execute_encryption(*args):
                     decryption_state[i][x][y] = bytes.fromhex(decryption_state[i][x][y]).decode('utf-8')
                     decrypted_message = decrypted_message + decryption_state[i][x][y]
     except UnicodeDecodeError:
-        print("Caracter inválido - Insira apenas caracteres presentes na tabela ASCII")
+        # print("Caracter inválido - Insira apenas caracteres presentes na tabela ASCII")
         result_label.set("Caracter inválido - Insira apenas caracteres presentes na tabela ASCII")
         result_text.set("")
     else:
-        print(f"Mensagem criptografada: {encrypted_array_to_line(encrypted_msg)}\n")
+        # print(f"Mensagem criptografada: {encrypted_array_to_line(encrypted_msg)}\n")
         if encrypted_array_to_line(encrypted_msg) != "":
             result_label.set("Texto criptografado: ")
             result_text.set(encrypted_array_to_line(encrypted_msg))
         else:
             result_label.set("Campo não preenchido")
             result_text.set("")
-        print(f"Mensagem descriptografada: {decrypted_message}\n")
+        print(f"Texto descriptografado: {decrypted_message}\n")
 
 
 # Interface
