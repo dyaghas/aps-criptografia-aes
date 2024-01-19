@@ -267,12 +267,11 @@ def execute_encryption(*args):
     # Criptografia
     try:
         key = text_to_hex_array(encryption_key)
+        key_final = key_expansion(key)
     except IndexError:
         result_label.set("A chave de criptografia precisa ter pelomenos 16 caracteres")
         result_text.set("")
         raise Exception("A chave de criptografia precisa ter pelomenos 16 caracteres")
-    # expansão de chave
-    key_final = key_expansion(key)
     encrypted_msg = encrypt(message, key_final, s_box_map)
 
     # Descriptografia

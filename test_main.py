@@ -50,5 +50,59 @@ def test_encryption():
     input_string = "This message shouldn't be visible"
     input_array = text_to_array(input_string)
     encrypted_msg = encrypt(input_array, expanded_key, s_box_map)
-    res = encrypted_array_to_line(encrypted_msg)
-    assert res == "6f7e5999682cb2207dee5ba67dca5429629199e597309d7be8707498930cec823f57af5666f03c4a3d28adfa710d201b"
+    expected_output = [
+        [
+            ['6f', '7e', '59', '99'],
+            ['68', '2c', 'b2', '20'],
+            ['7d', 'ee', '5b', 'a6'],
+            ['7d', 'ca', '54', '29']
+        ],
+        [
+            ['62', '91', '99', 'e5'],
+            ['97', '30', '9d', '7b'],
+            ['e8', '70', '74', '98'],
+            ['93', '0c', 'ec', '82']
+        ],
+        [
+            ['3f', '57', 'af', '56'],
+            ['66', 'f0', '3c', '4a'],
+            ['3d', '28', 'ad', 'fa'],
+            ['71', '0d', '20', '1b']
+        ]
+    ]
+    assert np.array_equal(encrypted_msg, expected_output)
+
+
+def test_decryption():
+    key = "A key that is used in cryptography"
+    hex_key = text_to_hex_array(key)
+    expanded_key = key_expansion(hex_key)
+    encrypted_msg = [
+        [
+            ['6f', '7e', '59', '99'],
+            ['68', '2c', 'b2', '20'],
+            ['7d', 'ee', '5b', 'a6'],
+            ['7d', 'ca', '54', '29']
+        ],
+        [
+            ['62', '91', '99', 'e5'],
+            ['97', '30', '9d', '7b'],
+            ['e8', '70', '74', '98'],
+            ['93', '0c', 'ec', '82']
+        ],
+        [
+            ['3f', '57', 'af', '56'],
+            ['66', 'f0', '3c', '4a'],
+            ['3d', '28', 'ad', 'fa'],
+            ['71', '0d', '20', '1b']
+        ]
+    ]
+    decrypted_message = ''
+    decryption_state = decrypt(encrypted_msg, expanded_key, s_box_map_inv)
+    for i in range(0, len(decryption_state)):
+        for x in range(0, BYTE_SIZE):
+            for y in range(0, BYTE_SIZE):
+                # transforma os números hexadecimais em seus caracteres utf-8 correspondentes
+                decryption_state[i][x][y] = bytes.fromhex(decryption_state[i][x][y]).decode('utf-8')
+                decrypted_message = decrypted_message + decryption_state[i][x][y]
+    assert decrypted_message == "This message shouldn't be visible               "
