@@ -158,7 +158,10 @@ def mix_columns_inv(array):
                    ['09', '0e', '0b', '0d'],
                    ['0d', '09', '0e', '0b'],
                    ['0b', '0d', '09', '0e']]
-    mix_state = [[0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00], [0x00, 0x00, 0x00, 0x00]]
+    mix_state = [[0x00, 0x00, 0x00, 0x00],
+                 [0x00, 0x00, 0x00, 0x00],
+                 [0x00, 0x00, 0x00, 0x00],
+                 [0x00, 0x00, 0x00, 0x00]]
     for e in range(0, BYTE_SIZE):
         for j in range(0, BYTE_SIZE):
             if array[0][e] != '00':
@@ -287,7 +290,7 @@ def execute_encryption(*args):
         result_label.set("Caracter inválido - Insira apenas caracteres presentes na tabela ASCII")
         result_text.set("")
     else:
-        # print(f"Mensagem criptografada: {encrypted_array_to_line(encrypted_msg)}\n")
+        print(f"Mensagem criptografada: {encrypted_array_to_line(encrypted_msg)}\n")
         if encrypted_array_to_line(encrypted_msg) != "":
             result_label.set("Texto criptografado: ")
             result_text.set(encrypted_array_to_line(encrypted_msg))
