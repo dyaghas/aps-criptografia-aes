@@ -5,12 +5,15 @@ from tables import s_box_map, s_box_map_inv, e_table, l_table, rcon_dict
 BYTE_SIZE = 4
 ROUNDS = 11
 
+
+# faz com que um número hexadecimal tenha necessariamente dois caracteres
 def force_two_digits(hex_string):
     if len(hex_string) < 2:
         hex_string = f"0{hex_string}"
     return hex_string
 
 
+# realiza a etapa rotação na chave de criptografia
 def rot_word(key):
     # previne que o input seja alterado acidentalmente
     state_array = copy.deepcopy(key)
@@ -21,6 +24,7 @@ def rot_word(key):
     return state_array
 
 
+# realiza a etapa de substituição na chave de criptografia
 def sub_word(rot_key):
     # Previne que o input seja alterado
     state_res = copy.deepcopy(rot_key)
@@ -30,16 +34,18 @@ def sub_word(rot_key):
     return state_res
 
 
+# realiza a etapa de rcon na chave de criptografia
 def rcon(sub_key, loop_num):
     # Previne que o input seja alterado
     state_res = copy.deepcopy(sub_key)
-    rcon_res = int(sub_key[0][3], 16)
+    rcon_res = int(sub_key[0][3], BYTE_SIZE*4)
     rcon_res = rcon_res ^ rcon_dict[loop_num]
     rcon_res = f"{rcon_res:x}"
     state_res[0][3] = rcon_res
     return state_res
 
 
+# realiza a etapa de expansão na chave de criptografia
 def expansion_xor(rcon_key, original_key):
     state_res = copy.deepcopy(rcon_key)
     # faz o XOR da primeira coluna da chave retornada na função rcon com a chave original
@@ -67,6 +73,5 @@ def key_expansion(key):
         key_fragment = sub_word(key_fragment)
         key_fragment = rcon(key_fragment, i)
         key_fragment = expansion_xor(key_fragment, key)
-        key_state = copy.deepcopy(key_fragment)
-        key_expanded.append(key_state)
+        key_expanded.append(key_fragment)
     return key_expanded
