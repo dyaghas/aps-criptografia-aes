@@ -335,7 +335,19 @@ root.bind("<Return>", execute_encryption)
 # Texto criptografado
 result_label = StringVar()
 ttk.Label(mainframe, textvariable=result_label).grid(column=2, row=4)
+
 result_text = StringVar()
-ttk.Label(mainframe, textvariable=result_text).grid(column=2, row=5)
+result_text_label = ttk.Label(mainframe, textvariable=result_text, wraplength=400)
+result_text_label.grid(column=2, row=5)
+
+
+# função que atualiza wraplength toda vez que a janela é redimensionada
+def update_wraplength(event):
+    current_width = event.width
+    wrap_length = int(current_width * 0.8)  # Adjust the factor as needed
+    result_text_label.configure(wraplength=wrap_length)
+
+
+mainframe.bind("<Configure>", update_wraplength)
 
 root.mainloop()

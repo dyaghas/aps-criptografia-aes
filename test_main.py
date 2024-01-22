@@ -33,23 +33,29 @@ def test_text_to_array_multiple():
 
 def test_text_to_hex_array():
     input_string = "TestInputStringg"
+    res = text_to_hex_array(input_string)
     expected_output = [
         ["54", "49", "74", "69"],
         ["65", "6e", "53", "6e"],
         ["73", "70", "74", "67"],
         ["74", "75", "72", "67"]
     ]
-    res = text_to_hex_array(input_string)
     assert np.array_equal(res, expected_output)
 
 
-def test_encryption():
+def test_encryption_functionality():
+
+    # arranjo
     key = "A key that is used in cryptography"
     hex_key = text_to_hex_array(key)
     expanded_key = key_expansion(hex_key)
     input_string = "This message shouldn't be visible"
     input_array = text_to_array(input_string)
+
+    # ação
     encrypted_msg = encrypt(input_array, expanded_key, s_box_map)
+
+    # asserção - a mensagem criptografada é retornada como um vetor de três dimensões
     expected_output = [
         [
             ['6f', '7e', '59', '99'],
@@ -73,7 +79,9 @@ def test_encryption():
     assert np.array_equal(encrypted_msg, expected_output)
 
 
-def test_decryption():
+def test_decryption_functionality():
+
+    # arranjo
     key = "A key that is used in cryptography"
     hex_key = text_to_hex_array(key)
     expanded_key = key_expansion(hex_key)
@@ -98,6 +106,8 @@ def test_decryption():
         ]
     ]
     decrypted_message = ''
+
+    # ação
     decryption_state = decrypt(encrypted_msg, expanded_key, s_box_map_inv)
     for i in range(0, len(decryption_state)):
         for x in range(0, BYTE_SIZE):
@@ -105,4 +115,7 @@ def test_decryption():
                 # transforma os números hexadecimais em seus caracteres utf-8 correspondentes
                 decryption_state[i][x][y] = bytes.fromhex(decryption_state[i][x][y]).decode('utf-8')
                 decrypted_message = decrypted_message + decryption_state[i][x][y]
+
+    # asserção
     assert decrypted_message == "This message shouldn't be visible               "
+
