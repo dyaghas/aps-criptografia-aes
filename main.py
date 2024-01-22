@@ -140,7 +140,7 @@ def mix_columns(array):
                 d = 0
             mix_state[j][e] = a ^ b ^ c ^ d
             mix_state[j][e] = f"{mix_state[j][e]:x}"
-    print(f"Mix columns: ", mix_state, "\n")
+    # print(f"Mix columns: ", mix_state, "\n")
     return mix_state
 
 
@@ -272,12 +272,12 @@ def execute_encryption(*args):
         result_label.set("A chave de criptografia precisa ter pelomenos 16 caracteres")
         result_text.set("")
         raise Exception("A chave de criptografia precisa ter pelomenos 16 caracteres")
-    encrypted_msg = encrypt(message, key_final, s_box_map)
+    cypher_txt = encrypt(message, key_final, s_box_map)
 
     # Descriptografia
     try:
         decrypted_message = ''
-        decryption_state = decrypt(encrypted_msg, key_final, s_box_map_inv)
+        decryption_state = decrypt(cypher_txt, key_final, s_box_map_inv)
         for i in range(0, len(decryption_state)):
             for x in range(0, BYTE_SIZE):
                 for y in range(0, BYTE_SIZE):
@@ -289,10 +289,10 @@ def execute_encryption(*args):
         result_label.set("Caracter inválido - Insira apenas caracteres presentes na tabela ASCII")
         result_text.set("")
     else:
-        print(f"Mensagem criptografada: {encrypted_array_to_line(encrypted_msg)}\n")
-        if encrypted_array_to_line(encrypted_msg) != "":
+        print(f"Mensagem criptografada: {encrypted_array_to_line(cypher_txt)}\n")
+        if encrypted_array_to_line(cypher_txt) != "":
             result_label.set("Texto criptografado: ")
-            result_text.set(encrypted_array_to_line(encrypted_msg))
+            result_text.set(encrypted_array_to_line(cypher_txt))
         else:
             result_label.set("Campo não preenchido")
             result_text.set("")

@@ -1,3 +1,5 @@
+import pytest
+
 from main import *
 from tables import *
 from key_expansion import key_expansion
@@ -197,10 +199,16 @@ def test_mix_columns_inv():
     assert np.array_equal(res, expected_output)
 
 
-def test_e_verify_table_compatibility_action():
+def test_e_verify_table_compatibility_subtraction():
     var = 0x100
     res = verify_e_table_compatibility(var)
     assert res == 3
+
+
+def test_verify_e_table_compatibility_no_sub():
+    var = 0xA3
+    res = verify_e_table_compatibility(var)
+    assert res == 100
 
 
 def test_encryption_functionality():
@@ -278,4 +286,94 @@ def test_decryption_functionality():
 
     # asserção
     assert decrypted_message == "This message shouldn't be visible               "
+
+
+def test_execute_encryption():
+    # arranjo
+    user_input = "Encrypt this message"
+    encryption_key = "fUy7w8DunBVGct1q"
+
+    # execução
+    message = text_to_array(user_input)
+    key = text_to_hex_array(encryption_key)
+    key_final = key_expansion(key)
+
+    cypher_txt = encrypt(message, key_final, s_box_map)
+
+    decrypted_message = ''
+    decryption_state = decrypt(cypher_txt, key_final, s_box_map_inv)
+    for i in range(0, len(decryption_state)):
+        for x in range(0, BYTE_SIZE):
+            for y in range(0, BYTE_SIZE):
+                # transforma os números hexadecimais em seus caracteres utf-8 correspondentes
+                decryption_state[i][x][y] = bytes.fromhex(decryption_state[i][x][y]).decode('utf-8')
+                decrypted_message = decrypted_message + decryption_state[i][x][y]
+
+    # asserção
+    assert decrypted_message == "Encrypt this message            "
+
+
+def test_execute_encryption_long_key():
+    # arranjo
+    user_input = "Encrypt this message"
+    encryption_key = "fUy7w8DunBVGct1qUchVYwaQ2"
+
+    # execução
+    message = text_to_array(user_input)
+    key = text_to_hex_array(encryption_key)
+    key_final = key_expansion(key)
+
+    cypher_txt = encrypt(message, key_final, s_box_map)
+
+    decrypted_message = ''
+    decryption_state = decrypt(cypher_txt, key_final, s_box_map_inv)
+    for i in range(0, len(decryption_state)):
+        for x in range(0, BYTE_SIZE):
+            for y in range(0, BYTE_SIZE):
+                # transforma os números hexadecimais em seus caracteres utf-8 correspondentes
+                decryption_state[i][x][y] = bytes.fromhex(decryption_state[i][x][y]).decode('utf-8')
+                decrypted_message = decrypted_message + decryption_state[i][x][y]
+
+    # asserção
+    assert decrypted_message == "Encrypt this message            "
+
+
+def test_short_key_handling():
+    # arranjo
+    encryption_key = "fUy7w8DunBVGct1"
+    expected_error_message = "string index out of range"
+
+    # execução
+    with pytest.raises(IndexError) as excinfo:
+        key = text_to_hex_array(encryption_key)
+
+    # asserção
+    assert str(excinfo.value) == expected_error_message
+
+
+def test_invalid_char_input():
+    # arranjo
+    user_input = "Encrypt this messageÇ"
+    encryption_key = "fUy7w8DunBVGct1q"
+    expected_error_message = "'utf-8' codec can't decode byte 0xc7 in position 0: unexpected end of data"
+
+    # execução
+    message = text_to_array(user_input)
+    key = text_to_hex_array(encryption_key)
+    key_final = key_expansion(key)
+
+    cypher_txt = encrypt(message, key_final, s_box_map)
+
+    with pytest.raises(UnicodeDecodeError) as excinfo:
+        decrypted_message = ''
+        decryption_state = decrypt(cypher_txt, key_final, s_box_map_inv)
+        for i in range(0, len(decryption_state)):
+            for x in range(0, BYTE_SIZE):
+                for y in range(0, BYTE_SIZE):
+                    # transforma os números hexadecimais em seus caracteres utf-8 correspondentes
+                    decryption_state[i][x][y] = bytes.fromhex(decryption_state[i][x][y]).decode('utf-8')
+                    decrypted_message = decrypted_message + decryption_state[i][x][y]
+
+    # asserção
+    assert str(excinfo.value) == expected_error_message
 
