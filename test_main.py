@@ -43,6 +43,166 @@ def test_text_to_hex_array():
     assert np.array_equal(res, expected_output)
 
 
+def test_add_round_key():
+    # arranjo
+    array = [
+        ['6f', '7e', '59', '99'],
+        ['68', '2c', 'b2', '20'],
+        ['7d', 'ee', '5b', 'a6'],
+        ['7d', 'ca', '54', '29']
+    ]
+
+    key = [
+        ['a1', 'b2', 'c3', 'd4'],
+        ['e5', 'f6', '07', '18'],
+        ['09', '2a', '3b', '4c'],
+        ['5d', '6e', '7f', '80']
+    ]
+
+    expected_output = [
+        ['ce', 'cc', '9a', '4d'],
+        ['8d', 'da', 'b5', '38'],
+        ['74', 'c4', '60', 'ea'],
+        ['20', 'a4', '2b', 'a9']
+    ]
+
+    # ação
+    res = add_round_key(array, key)
+
+    # asserção
+    assert np.array_equal(res, expected_output)
+
+
+def test_sub_byte():
+    # arranjo
+    input_array = [
+        ['ce', 'cc', '9a', '4d'],
+        ['8d', 'da', 'b5', '38'],
+        ['74', 'c4', '60', 'ea'],
+        ['20', 'a4', '2b', 'a9']
+    ]
+
+    s_box_mock = {
+        'ce': '01', 'cc': '02', '9a': '03', '4d': '04',
+        '8d': '05', 'da': '06', 'b5': '07', '38': '08',
+        '74': '09', 'c4': '0a', '60': '0b', 'ea': '0c',
+        '20': '0d', 'a4': '0e', '2b': '0f', 'a9': '10'
+    }
+
+    # Expected output after applying the sub_byte function
+    expected_output = [
+        ['01', '02', '03', '04'],
+        ['05', '06', '07', '08'],
+        ['09', '0a', '0b', '0c'],
+        ['0d', '0e', '0f', '10']
+    ]
+
+    # ação
+    sub_byte(input_array, s_box_mock)
+
+    # asserção
+    assert input_array == expected_output
+
+
+def test_shift_rows():
+    # arranjo
+    input_array = [
+        ['ce', 'cc', '9a', '4d'],
+        ['8d', 'da', 'b5', '38'],
+        ['74', 'c4', '60', 'ea'],
+        ['20', 'a4', '2b', 'a9']
+    ]
+    # para n linhas, cada elemento é deslocado n-1 para a esquerda
+    expected_output = [
+        ['ce', 'cc', '9a', '4d'],
+        ['da', 'b5', '38', '8d'],
+        ['60', 'ea', '74', 'c4'],
+        ['a9', '20', 'a4', '2b']
+    ]
+
+    # ação
+    shift_rows(input_array)
+
+    # asserção
+    assert np.array_equal(input_array, expected_output)
+
+
+def test_shift_rows_inv():
+    # arranjo
+    input_array = [
+        ['ce', 'cc', '9a', '4d'],
+        ['da', 'b5', '38', '8d'],
+        ['60', 'ea', '74', 'c4'],
+        ['a9', '20', 'a4', '2b']
+    ]
+    # para n linhas, cada elemento é deslocado n-1 para a direita
+    expected_output = [
+        ['ce', 'cc', '9a', '4d'],
+        ['8d', 'da', 'b5', '38'],
+        ['74', 'c4', '60', 'ea'],
+        ['20', 'a4', '2b', 'a9']
+    ]
+
+    # ação
+    shift_rows_inv(input_array)
+
+    # asserção
+    assert np.array_equal(input_array, expected_output)
+
+
+def test_mix_columns():
+
+    # arranjo
+    array = [
+        ['ce', 'cc', '9a', '4d'],
+        ['8d', 'da', 'b5', '38'],
+        ['74', 'c4', '60', 'ea'],
+        ['20', 'a4', '2b', 'a9']
+    ]
+
+    expected_output = [
+        ['5f', '96', 'a0', '91'],
+        ['73', '90', '60', 'b1'],
+        ['cb', '72', '92', '5a'],
+        ['f0', '2', '36', '4c']
+    ]
+
+    # ação
+    res = mix_columns(array)
+
+    # asserção
+    assert np.array_equal(res, expected_output)
+
+
+def test_mix_columns_inv():
+    # arranjo
+    array = [
+        ['ce', 'cc', '9a', '4d'],
+        ['8d', 'da', 'b5', '38'],
+        ['74', 'c4', '60', 'ea'],
+        ['20', 'a4', '2b', 'a9']
+    ]
+
+    expected_output = [
+        ['39', '2b', '68', '90'],
+        ['49', 'ee', '23', '68'],
+        ['ad', 'cf', '5a', '5b'],
+        ['ca', '7c', '75', '95']
+    ]
+
+    # ação
+    res = mix_columns_inv(array)
+
+    # asserção
+    assert np.array_equal(res, expected_output)
+
+
+def test_e_verify_table_compatibility_action():
+    var = 0x100
+    res = verify_e_table_compatibility(var)
+    assert res == 3
+
+
 def test_encryption_functionality():
 
     # arranjo

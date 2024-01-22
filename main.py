@@ -120,31 +120,31 @@ def mix_columns(array):
         for j in range(0, BYTE_SIZE):
             if array[0][e] != '00':
                 a = int(l_table[array[0][e]], BYTE_SIZE*4) + int(l_table[mult_matrix[j][0]], BYTE_SIZE*4)
-                a = verify_table_compatibility(a)
+                a = verify_e_table_compatibility(a)
             else:
                 a = 0
             if array[1][e] != '00':
                 b = int(l_table[array[1][e]], BYTE_SIZE*4) + int(l_table[mult_matrix[j][1]], BYTE_SIZE*4)
-                b = verify_table_compatibility(b)
+                b = verify_e_table_compatibility(b)
             else:
                 b = 0
             if array[2][e] != '00':
                 c = int(l_table[array[2][e]], BYTE_SIZE*4) + int(l_table[mult_matrix[j][2]], BYTE_SIZE*4)
-                c = verify_table_compatibility(c)
+                c = verify_e_table_compatibility(c)
             else:
                 c = 0
             if array[3][e] != '00':
                 d = int(l_table[array[3][e]], BYTE_SIZE*4) + int(l_table[mult_matrix[j][3]], BYTE_SIZE*4)
-                d = verify_table_compatibility(d)
+                d = verify_e_table_compatibility(d)
             else:
                 d = 0
             mix_state[j][e] = a ^ b ^ c ^ d
             mix_state[j][e] = f"{mix_state[j][e]:x}"
-    # print(f"Mix columns: ", mix_state, "\n")
+    print(f"Mix columns: ", mix_state, "\n")
     return mix_state
 
 
-def verify_table_compatibility(var):
+def verify_e_table_compatibility(var):
     # caso o número hexadecimal seja maior do que FF, deve-se subtrair FF de seu valor para que ele possa ser usado na
     # e_table e l_table.
     if len(f"{var:x}") > 2:
@@ -166,22 +166,22 @@ def mix_columns_inv(array):
         for j in range(0, BYTE_SIZE):
             if array[0][e] != '00':
                 a = int(l_table[array[0][e]], BYTE_SIZE*4) + int(l_table[mult_matrix[j][0]], BYTE_SIZE*4)
-                a = verify_table_compatibility(a)
+                a = verify_e_table_compatibility(a)
             else:
                 a = 0
             if array[1][e] != '00':
                 b = int(l_table[array[1][e]], BYTE_SIZE*4) + int(l_table[mult_matrix[j][1]], BYTE_SIZE*4)
-                b = verify_table_compatibility(b)
+                b = verify_e_table_compatibility(b)
             else:
                 b = 0
             if array[2][e] != '00':
                 c = int(l_table[array[2][e]], BYTE_SIZE*4) + int(l_table[mult_matrix[j][2]], BYTE_SIZE*4)
-                c = verify_table_compatibility(c)
+                c = verify_e_table_compatibility(c)
             else:
                 c = 0
             if array[3][e] != '00':
                 d = int(l_table[array[3][e]], BYTE_SIZE*4) + int(l_table[mult_matrix[j][3]], BYTE_SIZE*4)
-                d = verify_table_compatibility(d)
+                d = verify_e_table_compatibility(d)
             else:
                 d = 0
             mix_state[j][e] = a ^ b ^ c ^ d
@@ -300,6 +300,14 @@ def execute_encryption(*args):
 
 
 # Interface
+
+# função que atualiza wraplength toda vez que a janela é redimensionada
+def update_wraplength(event):
+    current_width = event.width
+    wrap_length = int(current_width * 0.8)  # Adjust the factor as needed
+    result_text_label.configure(wraplength=wrap_length)
+
+
 root = Tk()
 root.title("AES-128")
 root.columnconfigure(0, weight=1)
@@ -339,14 +347,6 @@ ttk.Label(mainframe, textvariable=result_label).grid(column=2, row=4)
 result_text = StringVar()
 result_text_label = ttk.Label(mainframe, textvariable=result_text, wraplength=400)
 result_text_label.grid(column=2, row=5)
-
-
-# função que atualiza wraplength toda vez que a janela é redimensionada
-def update_wraplength(event):
-    current_width = event.width
-    wrap_length = int(current_width * 0.8)  # Adjust the factor as needed
-    result_text_label.configure(wraplength=wrap_length)
-
 
 mainframe.bind("<Configure>", update_wraplength)
 
