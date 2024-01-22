@@ -10,7 +10,8 @@ praticidade, já que esse algoritmo não será implementado em nenhuma situaçã
 
  O programa possui uma interface gráfica onde é inserida uma chave de criptografia e a mensagem que será criptografada, exibindo o texto cifrado no canto inferior.
  
-![aes128-gui](https://github.com/dyaghas/aps-criptografia-aes/assets/56042071/4d9a1052-4be7-4638-99e2-29daa617fddb)
+![interface de criptografia AES](https://github.com/dyaghas/aps-criptografia-aes/assets/56042071/3ac89bc9-5f2e-4404-9356-e04952bb2171)
+
 
 ## Tecnologias
 
