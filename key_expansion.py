@@ -1,6 +1,6 @@
 import copy
 
-from tables import s_box_map, s_box_map_inv, e_table, l_table, rcon_dict
+from tables import s_box_map, rcon_dict
 
 BYTE_SIZE = 4
 ROUNDS = 11
@@ -64,8 +64,7 @@ def expansion_xor(rcon_key, original_key):
 
 # engloba todas as funções da expansão de chave
 def key_expansion(key):
-    key_expanded = []
-    key_expanded.append(key)
+    key_expanded = [key]
     key_fragment = copy.deepcopy(key)
     # cria uma chave para cada round de criptografia
     for i in range(1, ROUNDS):

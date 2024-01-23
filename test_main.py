@@ -1,8 +1,7 @@
 import pytest
 
 from main import *
-from tables import *
-from key_expansion import key_expansion
+from key_expansion import *
 import numpy as np
 
 
@@ -376,4 +375,16 @@ def test_invalid_char_input():
 
     # asserção
     assert str(excinfo.value) == expected_error_message
+
+
+def test_force_two_digits():
+    input_string = "B"
+    res = force_two_digits(input_string)
+    assert res == "0B"
+
+
+def test_force_two_digits_with_two_digits():
+    input_string = "10"
+    res = force_two_digits(input_string)
+    assert res == "10"
 
