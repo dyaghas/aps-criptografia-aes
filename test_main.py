@@ -70,8 +70,65 @@ class TestDataManipulation:
 
 class TestKeyExpansion:
     @staticmethod
-    def test_add_round_key():
+    # arranjo
+    @pytest.mark.parametrize("input_key, expected_output", [
+        ([
+             ['2f', 'a3', 'b1', 'c4'],
+             ['5d', '8e', '91', 'f2'],
+             ['7c', 'd9', 'e0', '3a'],
+             ['4b', '60', 'fc', '19']
+         ], [
+             ['2f', 'a3', 'b1', 'f2'],
+             ['5d', '8e', '91', '3a'],
+             ['7c', 'd9', 'e0', '19'],
+             ['4b', '60', 'fc', 'c4']
+         ]),
+        ([
+            ['f6', '8d', '33', 'c'],
+            ['5d', 'dd', 'f1', '0'],
+            ['90', '82', 'ff', '1'],
+            ['14', 'b1', 'b1', '1']
+        ], [
+            ['f6', '8d', '33', '00'],
+            ['5d', 'dd', 'f1', '01'],
+            ['90', '82', 'ff', '01'],
+            ['14', 'b1', 'b1', '0c']
+        ])
+    ])
+    def test_rot_word(input_key, expected_output):
+
+        result = rot_word(input_key)
+        # asserção - a última coluna deve ter seus elementos deslocados três casas avante
+
+        assert result == expected_output
+
+    @staticmethod
+    def test_sub_word():
         # arranjo
+        rotated_key = [
+            ['2f', 'a3', 'b1', '0f'],
+            ['5d', '8e', '91', '01'],
+            ['7c', 'd9', 'e0', '0a'],
+            ['4b', '60', 'fc', '07']
+        ]
+
+        expected_output = [
+            ['2f', 'a3', 'b1', '76'],
+            ['5d', '8e', '91', '7c'],
+            ['7c', 'd9', 'e0', '67'],
+            ['4b', '60', 'fc', 'c5']
+        ]
+
+        # ação
+        res = sub_word(rotated_key)
+
+        # asserção - a ultima coluna deve apresentar os valores das substituições de s_box_map em tables.py
+        assert res == expected_output
+
+
+class TestCryptographyRounds:
+    @staticmethod
+    def test_add_round_key():
         array = [
             ['6f', '7e', '59', '99'],
             ['68', '2c', 'b2', '20'],
@@ -93,15 +150,13 @@ class TestKeyExpansion:
             ['20', 'a4', '2b', 'a9']
         ]
 
-        # ação
         res = add_round_key(array, key)
 
-        # asserção
+        # asserção - resultado após a adição da round key
         assert np.array_equal(res, expected_output)
 
     @staticmethod
     def test_sub_byte():
-        # arranjo
         input_array = [
             ['ce', 'cc', '9a', '4d'],
             ['8d', 'da', 'b5', '38'],
@@ -116,7 +171,6 @@ class TestKeyExpansion:
             '20': '0d', 'a4': '0e', '2b': '0f', 'a9': '10'
         }
 
-        # Expected output after applying the sub_byte function
         expected_output = [
             ['01', '02', '03', '04'],
             ['05', '06', '07', '08'],
@@ -124,10 +178,9 @@ class TestKeyExpansion:
             ['0d', '0e', '0f', '10']
         ]
 
-        # ação
         sub_byte(input_array, s_box_mock)
 
-        # asserção
+        # asserção - resultado após a substituição de bytes através da s_box
         assert input_array == expected_output
 
     @staticmethod
@@ -139,7 +192,7 @@ class TestKeyExpansion:
             ['74', 'c4', '60', 'ea'],
             ['20', 'a4', '2b', 'a9']
         ]
-        # para n linhas, cada elemento é deslocado n-1 para a esquerda
+
         expected_output = [
             ['ce', 'cc', '9a', '4d'],
             ['da', 'b5', '38', '8d'],
@@ -150,7 +203,7 @@ class TestKeyExpansion:
         # ação
         shift_rows(input_array)
 
-        # asserção
+        # asserção - para n linhas, cada elemento é deslocado n-1 para a esquerda
         assert np.array_equal(input_array, expected_output)
 
     @staticmethod
@@ -344,15 +397,16 @@ class TestEncryptionProcess:
 
 
 # testes end-to-end
-class EndToEndEncryption:
+class TestEndToEndEncryption:
     @staticmethod
-    # teste com chave de criptografia de exatamente 16 bytes
-    def test_execute_encryption():
-        # arranjo
-        user_input = "Encrypt this message"
-        encryption_key = "fUy7w8DunBVGct1q"
+    @pytest.mark.parametrize("user_input, encryption_key, expected_decrypted_message", [
+        ("Encrypt this message", "fUy7w8DunBVGct1q", "Encrypt this message            "),
+        # teste com chave de criptografia que não preenche dois blocos de 16 bytes totalmente
+        ("Another message", "fUy7w8DunBVGct1qUchVYwaQ2", "Another message "),
+        # Add more test cases as needed
+    ])
+    def test_execute_encryption(user_input, encryption_key, expected_decrypted_message):
 
-        # execução
         message = text_to_array(user_input)
         key = text_to_hex_array(encryption_key)
         key_final = key_expansion(key)
@@ -369,30 +423,4 @@ class EndToEndEncryption:
                     decrypted_message = decrypted_message + decryption_state[i][x][y]
 
         # asserção - a mensagem deve permanecer igual no inicio porém com uma quantidade de caracteres múltipla de 16
-        assert decrypted_message == "Encrypt this message            "
-
-    @staticmethod
-    # a chave de criptografia tem mais de 16 caracteres porém não preenche totalmente todos os blocos de 16 bytes
-    def test_execute_encryption_unfilled_key():
-        # arranjo
-        user_input = "Encrypt this message"
-        encryption_key = "fUy7w8DunBVGct1qUchVYwaQ2"
-
-        # execução
-        message = text_to_array(user_input)
-        key = text_to_hex_array(encryption_key)
-        key_final = key_expansion(key)
-
-        cypher_txt = encrypt(message, key_final, s_box_map)
-
-        decrypted_message = ''
-        decryption_state = decrypt(cypher_txt, key_final, s_box_map_inv)
-        for i in range(0, len(decryption_state)):
-            for x in range(0, BYTE_SIZE):
-                for y in range(0, BYTE_SIZE):
-                    # transforma os números hexadecimais em seus caracteres utf-8 correspondentes
-                    decryption_state[i][x][y] = bytes.fromhex(decryption_state[i][x][y]).decode('utf-8')
-                    decrypted_message = decrypted_message + decryption_state[i][x][y]
-
-        # asserção - a mensagem deve permanecer igual no inicio porém com uma quantidade de caracteres múltipla de 16
-        assert decrypted_message == "Encrypt this message            "
+        assert decrypted_message == expected_decrypted_message
