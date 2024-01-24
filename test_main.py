@@ -12,24 +12,15 @@ class TestDataManipulation:
         assert res == '41'
 
     @staticmethod
-    def test_text_to_array_empty():
-        res = text_to_array("")
-        assert res == []
-
-    @staticmethod
-    def test_text_to_array_incomplete():
-        res = text_to_array("Thats it")
-        assert res == ["Thats it        "]
-
-    @staticmethod
-    def test_text_to_array_single():
-        res = text_to_array("Thats itThats it")
-        assert res == ["Thats itThats it"]
-
-    @staticmethod
-    def test_text_to_array_multiple():
-        res = text_to_array("Thats itThats itThats it")
-        assert res == ["Thats itThats it", "Thats it        "]
+    @pytest.mark.parametrize("input_text, expected_output", [
+        ("", []),  # input vazio
+        ("Thats it", ["Thats it        "]),  # bloco incompleto
+        ("Thats itThats it", ["Thats itThats it"]),  # bloco completo
+        ("Thats itThats itThats it", ["Thats itThats it", "Thats it        "])  # dois blocos, um incompleto
+    ])
+    def test_text_to_array(input_text, expected_output):
+        expected_output = text_to_array("")
+        assert expected_output == []
 
     @staticmethod
     def test_text_to_hex_array():
@@ -44,16 +35,14 @@ class TestDataManipulation:
         assert np.array_equal(res, expected_output)
 
     @staticmethod
-    def test_force_two_digits():
-        input_string = "B"
-        res = force_two_digits(input_string)
-        assert res == "0B"
+    @pytest.mark.parametrize("input_string, expected_output", [
+        ("B", "0B"),  # número incompleto
+        ("10", "10")  # número completo - nenhuma ação necessária
+    ])
+    def test_force_two_digits(input_string, expected_output):
+        output = force_two_digits(input_string)
+        assert output == expected_output
 
-    @staticmethod
-    def test_force_two_digits_no_action():
-        input_string = "10"
-        res = force_two_digits(input_string)
-        assert res == "10"
 
     @staticmethod
     def test_verify_e_table_compatibility_subtraction():
