@@ -43,7 +43,6 @@ class TestDataManipulation:
         output = force_two_digits(input_string)
         assert output == expected_output
 
-
     @staticmethod
     def test_verify_e_table_compatibility_subtraction():
         var = 0x100
@@ -92,26 +91,63 @@ class TestKeyExpansion:
         assert result == expected_output
 
     @staticmethod
-    def test_sub_word():
-        # arranjo
-        rotated_key = [
-            ['2f', 'a3', 'b1', '0f'],
-            ['5d', '8e', '91', '01'],
-            ['7c', 'd9', 'e0', '0a'],
-            ['4b', '60', 'fc', '07']
-        ]
+    @pytest.mark.parametrize("input_key, expected_output", [
+        ([
+             ['2f', 'a3', 'b1', '0f'],
+             ['5d', '8e', '91', '01'],
+             ['7c', 'd9', 'e0', '0a'],
+             ['4b', '60', 'fc', '07']
+         ], [
+             ['2f', 'a3', 'b1', '76'],
+             ['5d', '8e', '91', '7c'],
+             ['7c', 'd9', 'e0', '67'],
+             ['4b', '60', 'fc', 'c5']
+         ]),
 
-        expected_output = [
-            ['2f', 'a3', 'b1', '76'],
-            ['5d', '8e', '91', '7c'],
-            ['7c', 'd9', 'e0', '67'],
-            ['4b', '60', 'fc', 'c5']
-        ]
+    ])
+    def test_sub_word(input_key, expected_output):
 
-        # ação
-        res = sub_word(rotated_key)
+        res = sub_word(input_key)
 
         # asserção - a ultima coluna deve apresentar os valores das substituições de s_box_map em tables.py
+        assert res == expected_output
+
+    @staticmethod
+    @pytest.mark.parametrize("input_key, expected_output, iterations", [
+        ([
+             ['2f', 'a3', 'b1', '0f'],
+             ['5d', '8e', '91', '01'],
+             ['7c', 'd9', 'e0', '0a'],
+             ['4b', '60', 'fc', '07']
+         ],
+         [
+             ['2f', 'a3', 'b1', 'e'],
+             ['5d', '8e', '91', '01'],
+             ['7c', 'd9', 'e0', '0a'],
+             ['4b', '60', 'fc', '07']
+         ],
+         1
+         ),
+        ([
+             ['2f', 'a3', 'b1', '0f'],
+             ['5d', '8e', '91', '01'],
+             ['7c', 'd9', 'e0', '0a'],
+             ['4b', '60', 'fc', '07']
+         ],
+         [
+             ['2f', 'a3', 'b1', '1f'],
+             ['5d', '8e', '91', '01'],
+             ['7c', 'd9', 'e0', '0a'],
+             ['4b', '60', 'fc', '07']
+         ],
+         5
+         )
+
+    ])
+    def test_rcon(input_key, expected_output, iterations):
+
+        res = rcon(input_key, iterations)
+
         assert res == expected_output
 
 
