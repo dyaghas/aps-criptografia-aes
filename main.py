@@ -9,8 +9,8 @@ BYTE_SIZE = 4
 
 
 # Funções
-def string_to_hex(var):
-    var_hex = format(ord(var), "02x")
+def string_to_hex(string_input):
+    var_hex = format(ord(string_input), "02x")
     return var_hex
 
 

@@ -429,6 +429,7 @@ class TestEncryptionProcess:
         key = "A key that is used in cryptography"
         hex_key = text_to_hex_array(key)
         expanded_key = key_expansion(hex_key)
+
         input_string = "This message shouldn't be visible"
         input_array = text_to_array(input_string)
 
@@ -548,7 +549,6 @@ class TestEndToEndEncryption:
         ("Encrypt this message", "fUy7w8DunBVGct1q", "Encrypt this message            "),
         # teste com chave de criptografia que não preenche dois blocos de 16 bytes totalmente
         ("Another message", "fUy7w8DunBVGct1qUchVYwaQ2", "Another message "),
-        # Add more test cases as needed
     ])
     def test_execute_encryption(user_input, encryption_key, expected_decrypted_message):
 
