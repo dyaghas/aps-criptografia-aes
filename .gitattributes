@@ -1,2 +1,5 @@
 dist linguist-detectable=false
 *.spec linguist-detectable=false
+*.html linguist.detectable=false
+*.tex linguist.detectable=false
+*.python linguist-detectable=false
