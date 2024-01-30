@@ -12,6 +12,10 @@ praticidade, já que esse algoritmo não será implementado em nenhuma situaçã
  
 ![interface de criptografia AES](https://github.com/dyaghas/aps-criptografia-aes/assets/56042071/3ac89bc9-5f2e-4404-9356-e04952bb2171)
 
+## Como usar
+
+O software possui um executável no diretório criptografia-aes/dist/main. Basta abrir esse arquivo
+
 ## Testes
 
  o Código implementa diversos tipos de testes para garantir o seu bom funcionamento. Por exemplo: teste unitário, de integração e de performance.
