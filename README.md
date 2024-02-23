@@ -27,3 +27,7 @@ O software possui um executável no diretório criptografia-aes/dist/main. Basta
 - Numpy
 - Tkinter
 - pytest
+
+## Cenários de teste (em desenvolvimento)
+
+https://docs.google.com/spreadsheets/d/1vvWNU1wLWs4oYRdJyBgaru2TH-YrHGpKjq81gGbbJIk/edit?usp=sharing
