@@ -265,14 +265,14 @@ def execute_encryption(*args):
     message = text_to_array(user_input)
 
     # Criptografia
-    try:
+    if len(encryption_key) == 16:
         key = text_to_hex_array(encryption_key)
         key_final = key_expansion(key)
-    except IndexError:
-        result_label.set("A chave de criptografia precisa ter pelomenos 16 caracteres")
+        cypher_txt = encrypt(message, key_final, s_box_map)
+    else:
+        result_label.set("A chave de criptografia deve ter exatamente 16 caracteres")
         result_text.set("")
-        raise Exception("A chave de criptografia precisa ter pelomenos 16 caracteres")
-    cypher_txt = encrypt(message, key_final, s_box_map)
+        raise Exception("A chave de criptografia deve ter exatamente 16 caracteres")
 
     # Descriptografia
     try:

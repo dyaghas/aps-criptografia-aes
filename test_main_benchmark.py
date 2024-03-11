@@ -1,9 +1,9 @@
 import pytest
 from main import *
-from key_expansion import key_expansion
+from tables import s_box_map_inv
 
 
-@pytest.mark.parametrize("message, key_expanded, s_box", [
+@pytest.mark.parametrize("message, expanded_key, s_box", [
     ("This message shouldn't be visible",
         [
             [
@@ -74,8 +74,8 @@ from key_expansion import key_expansion
         ],
         s_box_map)
 ])
-def test_encrypt_benchmark(benchmark, message, key_expanded, s_box):
+def test_encrypt_benchmark(benchmark, message, expanded_key, s_box):
     def benchmarked_function():
         msg_array = text_to_array(message)
-        encrypt(msg_array, key_expanded, s_box)
+        encrypt(msg_array, expanded_key, s_box)
     benchmark(benchmarked_function)

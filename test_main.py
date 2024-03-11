@@ -44,21 +44,17 @@ class TestDataManipulation:
         assert output == expected_output
 
     @staticmethod
-    def test_verify_e_table_compatibility_subtraction():
-        var = 0x100
-        res = verify_e_table_compatibility(var)
-        assert res == 3
-
-    @staticmethod
-    def test_verify_e_table_compatibility_no_action():
-        var = 0xA3
-        res = verify_e_table_compatibility(var)
-        assert res == 100
+    @pytest.mark.parametrize("var, expected_output", [
+        (0x100, 3),
+        (0xA3, 100)  # Valor com mais de 2 índices, deve ter o valor FF subtraído antes da conversão
+    ])
+    def test_verify_e_table_compatibility(var, expected_output):
+        output = verify_e_table_compatibility(var)
+        assert output == expected_output
 
 
 class TestKeyExpansion:
     @staticmethod
-    # arranjo
     @pytest.mark.parametrize("input_key, expected_output", [
         (
             [
